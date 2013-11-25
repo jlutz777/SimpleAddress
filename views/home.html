@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="test_name">
+<head>
+<meta charset="utf-8">
+<title>Address Tracker</title>
+<head>
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+<link href="css/main.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"> </script>
+<script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
+<script src="js/controllers.js"></script>
+<script type="text/javascript">
+angular.module('test_name', ['ui.bootstrap']);
+
+function AlertDemoCtrl($scope) {
+  $scope.alerts = [
+    { type: 'error', msg: 'Oh snap! Change a few things up and try submitting again.' }, 
+    { type: 'success', msg: 'Well done! You successfully read this important alert message.' }
+  ];
+
+  $scope.addAlert = function() {
+    $scope.alerts.push({msg: "Another alert!"});
+  };
+
+  $scope.closeAlert = function(index) {
+    $scope.alerts.splice(index, 1);
+  };
+}
+</script>
+
+</head>
+<body ng-controller="AddressListCtrl">
+    <h3>Addresses:</h3>
+    <accordion close-others="true">
+        <accordion-group heading="{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}" ng-repeat="address in addresses">
+            <p>{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</p>
+            <p>{{"{{"}}address.street_1{{"}}"}}</p>
+            <p>{{"{{"}}address.street_2{{"}}"}}</p>
+            <p>{{"{{"}}address.city{{"}}"}}, {{"{{"}}address.state{{"}}"}} {{"{{"}}address.zip{{"}}"}}</p>
+            <p>{{"{{"}}address.country{{"}}"}}</p>
+            <button class="btn btn-primary" ng-click="open(address)">Edit</button>
+            <button class="btn btn-warning" ng-click="remove(address)">Delete</button>
+        </accordion-group>
+    </accordion>
+    <h3>Add a New Address:</h3>
+    {% for field in address_fields %}
+    <div class="row">
+    <div class="span9">
+    <input type="text" placeholder="{{ field.placeholder }}" ng-model="newaddress.{{field.name}}" name="{{field.name}}" size="30" ng:required />
+    </div>
+    </div>
+    {% endfor %}
+    <button class="btn btn-primary" ng-click="create()">Create Address</button>
+    <div>
+        <script type="text/ng-template" id="editContent.html">
+            <div class="modal-header">
+                <h3>Edit address</h3>
+            </div>
+            <div class="modal-body">
+                {% for field in address_fields %}
+                <div class="row">
+                    <div class="span1">
+                        <input type="text" placeholder="{{ field.placeholder }}" ng-model="address.{{field.name}}" name="{{field.name}}" size="30" ng:required />
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="ok()">OK</button>
+                <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+            </div>
+        </script>
+        <script type="text/ng-template" id="removeDialog.html">
+            <div class="modal-header">
+                <h3>Delete</h3>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this address?
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="ok()">OK</button>
+                <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+            </div>
+        </script>
+</div>
+</body>
+</html>
