@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="test_name">
+<html lang="en" ng-app="SimpleAddress">
 <head>
 <meta charset="utf-8">
 <title>Address Tracker</title>
@@ -10,7 +10,7 @@
 <script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
 <script src="js/controllers.js"></script>
 <script type="text/javascript">
-angular.module('test_name', ['ui.bootstrap']);
+angular.module('SimpleAddress', ['ui.bootstrap']);
 
 function AlertDemoCtrl($scope) {
   $scope.alerts = [
@@ -30,7 +30,11 @@ function AlertDemoCtrl($scope) {
 
 </head>
 <body ng-controller="AddressListCtrl">
-    <h3>Addresses:</h3>
+    <div id="mainwrapper">
+    <header><h1>SimpleAddress - Track Your Addresses Simply</h1></header>
+    <div id="contentwrapper">
+    <section>
+    <h2>Your Addresses</h2>
     <accordion close-others="true">
         <accordion-group heading="{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}" ng-repeat="address in addresses">
             <p>{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</p>
@@ -42,15 +46,20 @@ function AlertDemoCtrl($scope) {
             <button class="btn btn-warning" ng-click="remove(address)">Delete</button>
         </accordion-group>
     </accordion>
-    <h3>Add a New Address:</h3>
+    </section>
+    <aside>
+    <h2>Add a New Address</h2>
     {% for field in address_fields %}
     <div class="row">
-    <div class="span9">
+    <div class="span3">
     <input type="text" placeholder="{{ field.placeholder }}" ng-model="newaddress.{{field.name}}" name="{{field.name}}" size="30" ng:required />
     </div>
     </div>
     {% endfor %}
     <button class="btn btn-primary" ng-click="create()">Create Address</button>
+    </aside>
+    </div>
+    </div>
     <div>
         <script type="text/ng-template" id="editContent.html">
             <div class="modal-header">

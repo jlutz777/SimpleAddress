@@ -1,3 +1,47 @@
+*, h1, h2, h3, h4, h5, h6
+{
+    margin: 0;
+    padding: 0;
+}
+
+body
+{
+    font:1em helvetica, arial, sans-serif;
+}
+
+div#mainwrapper
+{
+    min-width:600px; max-width: 1000px;
+    margin: 0 auto;
+}
+
+div#contentwrapper
+{
+    float: left;
+    width: 100%;
+}
+
+header
+{
+    background: #dcd9c0;
+    padding: 5px 10px;
+    margin: 10px;
+}
+
+div#contentwrapper > section
+{
+    float: left;
+    width: auto;
+    padding: 20px;
+}
+
+aside
+{
+    float: right;
+    width: 300px;
+    padding: 20px 0;
+}
+
 div.accordion-inner p
 {
     margin: 0;
