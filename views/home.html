@@ -42,6 +42,7 @@ function AlertDemoCtrl($scope) {
             <p>{{"{{"}}address.street_2{{"}}"}}</p>
             <p>{{"{{"}}address.city{{"}}"}}, {{"{{"}}address.state{{"}}"}} {{"{{"}}address.zip{{"}}"}}</p>
             <p>{{"{{"}}address.country{{"}}"}}</p>
+            <p>Label: {{"{{"}}address.label_name{{"}}"}}</p>
             <button class="btn btn-primary" ng-click="open(address)">Edit</button>
             <button class="btn btn-warning" ng-click="remove(address)">Delete</button>
         </accordion-group>

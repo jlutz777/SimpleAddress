@@ -5,5 +5,5 @@ class AddressModel(DataModel):
         super(AddressModel, self).__init__('jason', 'addresses')
 
     def getCreationFields(self):
-        self.fields = ["first_name", "last_name", "spouse", "email_address", "street_1", "street_2", "city", "state", "zip", "country", "home_phone", "mobile_phone", "relationship", "title", "children"]
+        self.fields = ["first_name", "last_name", "spouse", "email_address", "street_1", "street_2", "city", "state", "zip", "country", "home_phone", "mobile_phone", "relationship", "title", "children", "label_name"]
         return super(AddressModel, self).getCreationFields()
