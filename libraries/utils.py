@@ -41,11 +41,12 @@ class CSVHelper:
     def convertToCSV(self, o, orderedFields):
         output = io.BytesIO()
         writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerow(orderedFields)
         for item in o:
             idToStr(item)
             orderedValues = []
             for field in orderedFields:
-                orderedValues.append(item[field.name])
+                orderedValues.append(item.get(field.name, ''))
             writer.writerow(orderedValues)
         return output.getvalue()
 
@@ -87,3 +88,8 @@ class Field:
         pieces = self.name.split("_")
         nameWithSpaces = " ".join(pieces)
         self.placeholder = nameWithSpaces.title()
+        return self.placeholder
+
+    def __repr__(self):
+        return self.placeholder
+
