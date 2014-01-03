@@ -1,24 +1,56 @@
-import os
-from bottle import get, post, put, delete, HTTPResponse, request, route, run, TEMPLATE_PATH, jinja2_template as template, static_file
+from bottle import Bottle, get, post, put, delete, HTTPResponse, request, route, run, TEMPLATE_PATH, jinja2_template as template, static_file
+from gunicorn.app.base import Application
 from libraries.utils import JSONHelper, strToId, CSVHelper
 from models.address import AddressModel
+import os
 
 MODULEPATH = os.path.dirname(__file__)
 TEMPLATE_PATH.append(os.path.join(MODULEPATH,"views"))
 
-@route('/')
+class AddressServer(Application):
+    """Strongly borrowed from:  http://damianzaremba.co.uk/2012/08/running-a-wsgi-app-via-gunicorn-from-python/"""
+
+    def __init__(self, options={}):
+        self.usage = None
+        self.callable = None
+        self.prog = None
+        self.options = options
+        self.do_load_config()
+        super(AddressServer, self).__init__()
+        self.app = Bottle()
+        self.add_routes()
+
+    def add_routes(self):
+        self.app.route('/', 'GET', callback=index)
+        self.app.route('/addresses', 'GET', callback=get_addresses)
+        self.app.route('/addresses', 'POST', callback=post_addresses)
+        self.app.route('/addresses', 'PUT', callback=put_addresses)
+        self.app.route('/addresses/<deleteId>', 'DELETE', callback=delete_addresses)
+        self.app.route('/csv', 'GET', callback=csv_export)
+        self.app.route('/importcsv', 'GET', callback=csv_import)
+        self.app.route('/js/<filename>', 'GET', callback=js_static)
+        self.app.route('/css/<filename>', 'GET', callback=css_static)
+
+    def init(self, *args):
+        cfg = {}
+        for k,v in self.options.items():
+            if k.lower() in self.cfg.settings and v is not None:
+                cfg[k.lower()] = v
+        return cfg
+
+    def load(self):
+        return self.app
+
 def index():
     address_fields=AddressModel().getCreationFields()
     return template('home.html', address_fields=address_fields)
 
-@get('/addresses')
 def get_addresses():
     helper = AddressModel()
     addresses = helper.getMultiple()
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200, header={'Content-Type':'application/json'})
 
-@post('/addresses')
 def post_addresses():
     helper = AddressModel()
     throwAway, newAddress = JSONHelper().decode(request.body.read())
@@ -29,7 +61,6 @@ def post_addresses():
     else:
         return return_error(400, "Create did not work.")
 
-@put('/addresses')
 def put_addresses():
     helper = AddressModel()
     ids, decodeds = JSONHelper().decode(request.body.read())
@@ -39,7 +70,6 @@ def put_addresses():
     else:
         return return_error(400, "Update did not work.")
 
-@delete('/addresses/<deleteId>')
 def delete_addresses(deleteId):
     helper = AddressModel()
 
@@ -48,14 +78,12 @@ def delete_addresses(deleteId):
     else:
         return return_error(400, "Delete did not work")
 
-@get('/csv')
 def csv_export():
     helper = AddressModel()
     addresses = helper.getMultiple()
     csvAddresses = CSVHelper().convertToCSV(addresses, helper.getCreationFields())
     return HTTPResponse(csvAddresses, status=200, header={'Content-Type': 'text/csv', 'Content-disposition': 'attachment;filename=addresses.csv'})
 
-@get('/importcsv')
 def csv_import():
     helper = AddressModel()
     addresses = CSVHelper().convertFromCSV('contacts.csv')
@@ -68,11 +96,9 @@ def csv_import():
     else:
         return return_error(400, "Import did not work.")
     
-@route('/js/<filename>')
 def js_static(filename):
     return static_file(filename, root=os.path.join(MODULEPATH, 'static/js'))
 
-@route('/css/<filename>')
 def css_static(filename):
     return static_file(filename, root=os.path.join(MODULEPATH, 'static/css'))
 
@@ -80,4 +106,5 @@ def return_error(status, msg=''):
     json_err = JSONHelper().encode({'error':msg})
     return HTTPResponse(json_err, status=status, header={'Content-Type':'application/json'})
 
-run(host='0.0.0.0', port=80)
+if __name__ == '__main__':
+    AddressServer({"bind": "0.0.0.0:80", "workers": 4, "proc_name": "simpleaddress", "max_requests": 100, "timeout": 300}).run()
