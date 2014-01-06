@@ -1,0 +1,8 @@
+argparse==1.2.1
+bottle==0.11.6
+bson==0.3.3
+distribute==0.6.34
+gunicorn==18.0
+pymongo==2.6.3
+pytz==2013.9
+wsgiref==0.1.2
