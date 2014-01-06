@@ -107,4 +107,5 @@ def return_error(status, msg=''):
     return HTTPResponse(json_err, status=status, header={'Content-Type':'application/json'})
 
 if __name__ == '__main__':
-    AddressServer({"bind": "0.0.0.0:5000", "workers": 3, "proc_name": "simpleaddress", "max_requests": 100, "timeout": 300}).run()
+    port = int(os.environ.get("PORT", 5000))
+    AddressServer({"bind": "0.0.0.0:"+str(port), "workers": 3, "proc_name": "simpleaddress", "max_requests": 100, "timeout": 300}).run()
