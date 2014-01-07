@@ -1,11 +1,13 @@
 from pymongo import MongoClient
 from libraries.utils import fieldsFromFieldNameArray
+import os
 
 class DataModel(object):
     fields = []
 
     def __init__(self, dbName, tableName):
-        client = MongoClient()
+        MONGO_URL = os.environ.get('MONGOHQ_URL')
+        client = MongoClient(MONGO_URL)
         db = client[dbName]
         self.table = db[tableName]
 
