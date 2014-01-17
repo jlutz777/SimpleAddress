@@ -5,21 +5,21 @@ SimpleAddress is a simple address web application for viewing, searching, adding
 
 This is very much a learning project with an express purpose of using new technologies in an intent to learn.  In doing so, it is needlessly complex at times.
 
-Technologies used:
-Python
-Bottle micro web framework
-gunicorn
-Cork (bottle-cork)
-MongoDB (hosted on MongoHQ)
-AngularJS
-UI bootstrap
-Jinja templating
-Koding for developing
+<b>Technologies used:</b><br />
+Python<br />
+Bottle micro web framework<br />
+gunicorn<br />
+Cork (bottle-cork)<br />
+MongoDB (hosted on MongoHQ)<br />
+AngularJS<br />
+UI bootstrap<br />
+Jinja templating<br />
+Koding for developing<br />
 Heroku for deploying and hosting
 
-Currently the following aspects are not completed:
-Searching
-Advanced filtering
+<b>Currently the following aspects are not completed:</b><br />
+Searching<br />
+Advanced filtering<br />
 Authentication
 
 Feel free to borrow/steal any code you see.  I want others to learn as much as I did.
