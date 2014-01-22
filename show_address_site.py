@@ -1,11 +1,28 @@
-from bottle import Bottle, get, post, put, delete, HTTPResponse, request, route, run, TEMPLATE_PATH, jinja2_template as template, static_file
+from bottle import Bottle, hook, HTTPResponse, redirect, request, route, run, TEMPLATE_PATH, jinja2_template as template, static_file, debug
+from beaker.middleware import SessionMiddleware
+from cork import Cork
+from cork.backends import MongoDBBackend
 from gunicorn.app.base import Application
 from libraries.utils import JSONHelper, strToId, CSVHelper
 from models.address import AddressModel
+import logging
 import os
+
+logging.basicConfig(format='localhost - - [%(asctime)s] %(message)s', level=logging.DEBUG)
+log = logging.getLogger(__name__)
+debug(True)
 
 MODULEPATH = os.path.dirname(__file__)
 TEMPLATE_PATH.append(os.path.join(MODULEPATH,"views"))
+LOGIN_PATH = '/login'
+CHANGE_PASSWORD_PATH = '/change_password'
+VALIDATE_REGISTRATION_PATH = '/validate_registration'
+MONGO_URL = os.environ.get('MONGOHQ_URL')
+MONGO_DB = os.environ.get('MONGOHQ_DB')
+EMAIL_PASS = os.environ.get('EMAIL_PASSWORD')
+
+mb = MongoDBBackend(MONGO_DB, MONGO_URL)
+loginPlugin = Cork(backend=mb, email_sender='jlutz777@gmail.com', smtp_url='starttls://jlutz777@gmail.com:' + EMAIL_PASS + '@smtp.gmail.com:587')
 
 class AddressServer(Application):
     """Strongly borrowed from:  http://damianzaremba.co.uk/2012/08/running-a-wsgi-app-via-gunicorn-from-python/"""
@@ -19,15 +36,36 @@ class AddressServer(Application):
         super(AddressServer, self).__init__()
         self.app = Bottle()
         self.add_routes()
+        self.add_middleware()
+
+    def add_middleware(self):
+        session_opts = {
+            'session.cookie_expires': True,
+            'session.encrypt_key': 'please use a random key and keep it secret!',
+            'session.httponly': True,
+            'session.timeout': 3600 * 24,  # 1 day
+            'session.type': 'cookie',
+            'session.validate_key': True,
+        }
+        self.app = SessionMiddleware(self.app, session_opts)
 
     def add_routes(self):
-        self.app.route('/', 'GET', callback=index)
-        self.app.route('/addresses', 'GET', callback=get_addresses)
-        self.app.route('/addresses', 'POST', callback=post_addresses)
-        self.app.route('/addresses', 'PUT', callback=put_addresses)
-        self.app.route('/addresses/<deleteId>', 'DELETE', callback=delete_addresses)
-        self.app.route('/csv', 'GET', callback=csv_export)
-        self.app.route('/importcsv', 'GET', callback=csv_import)
+        self.app.route(LOGIN_PATH, 'GET', callback=get_login)
+        self.app.route(LOGIN_PATH, 'POST', callback=post_login)
+        self.app.route('/logout', 'GET', callback=logout)
+        self.app.route('/register', 'POST', callback=post_register)
+        self.app.route(VALIDATE_REGISTRATION_PATH + '/<registration_code>', 'GET', callback=validate_registration)
+        self.app.route(CHANGE_PASSWORD_PATH + '/<reset_code>', 'GET', callback=get_change_password)
+        self.app.route(CHANGE_PASSWORD_PATH + , 'POST', callback=post_change_password)
+
+        self.app.route('/', 'GET', callback=index, apply=check_login)
+        self.app.route('/addresses', 'GET', callback=get_addresses, apply=check_login)
+        self.app.route('/addresses', 'POST', callback=post_addresses, apply=check_login)
+        self.app.route('/addresses', 'PUT', callback=put_addresses, apply=check_login)
+        self.app.route('/addresses/<deleteId>', 'DELETE', callback=delete_addresses, apply=check_login)
+        self.app.route('/csv', 'GET', callback=csv_export, apply=check_login)
+        self.app.route('/importcsv', 'GET', callback=csv_import, apply=check_login)
+
         self.app.route('/js/<filename>', 'GET', callback=js_static)
         self.app.route('/css/<filename>', 'GET', callback=css_static)
 
@@ -40,6 +78,42 @@ class AddressServer(Application):
 
     def load(self):
         return self.app
+
+@hook('before_request')
+def check_login(fn):
+    def check_uid(**kwargs):
+        loginPlugin.require(fail_redirect=LOGIN_PATH)
+        return fn(**kwargs)
+    return check_uid
+
+def post_get(name, default=''):
+    return request.POST.get(name, default).strip()
+
+def get_login():
+    return template('login_form.html')
+
+def post_login():
+    username = post_get('username')
+    password = post_get('password')
+    loginPlugin.login(username, password, success_redirect='/', fail_redirect=LOGIN_PATH)
+
+def logout():
+    loginPlugin.logout(success_redirect=LOGIN_PATH)
+
+def post_register():
+    loginPlugin.register(post_get('username'), post_get('password'), post_get('email_address'))
+    return 'Please check your mailbox'
+
+def validate_registration(registration_code):
+    loginPlugin.validate_registration(registration_code)
+    return 'Thanks. <a href="/login">Go to login</a>'
+
+def get_change_password(reset_code):
+    return template('password_reset_form.html', reset_code=reset_code)
+
+def post_change_password():
+    loginPlugin.reset_password(post_get('reset_code'), post_get('password'))
+    return 'Thanks. <a href="/login">Go to login</a>'
 
 def index():
     address_fields=AddressModel().getCreationFields()
