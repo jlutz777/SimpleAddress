@@ -20,6 +20,5 @@ Heroku for deploying and hosting
 <b>Currently the following aspects are not completed:</b><br />
 Searching<br />
 Advanced filtering<br />
-Authentication
 
 Feel free to borrow/steal any code you see.  I want others to learn as much as I did.
