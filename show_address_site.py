@@ -121,7 +121,7 @@ def index():
 
 def get_addresses():
     helper = AddressModel()
-    addresses = helper.getMultiple()
+    addresses = helper.getMultiple(userName=loginPlugin.current_user.username)
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200, header={'Content-Type':'application/json'})
 
@@ -129,7 +129,7 @@ def post_addresses():
     helper = AddressModel()
     throwAway, newAddress = JSONHelper().decode(request.body.read())
 
-    postId = helper.create(newAddress)
+    postId = helper.create(newAddress, userName=loginPlugin.current_user.username)
     if postId != -1:
         return HTTPResponse(JSONHelper().encode({'id':postId}), status=200, header={'Content-Type':'application/json'})
     else:
@@ -139,7 +139,7 @@ def put_addresses():
     helper = AddressModel()
     ids, decodeds = JSONHelper().decode(request.body.read())
 
-    if helper.updateMultiple(ids, decodeds):
+    if helper.updateMultiple(ids, decodeds, userName=loginPlugin.current_user.username):
         return HTTPResponse(status=200)
     else:
         return return_error(400, "Update did not work.")
@@ -147,14 +147,14 @@ def put_addresses():
 def delete_addresses(deleteId):
     helper = AddressModel()
 
-    if helper.delete(strToId(deleteId)):
+    if helper.delete(strToId(deleteId), userName=loginPlugin.current_user.username):
         return HTTPResponse(status=200)
     else:
         return return_error(400, "Delete did not work")
 
 def csv_export():
     helper = AddressModel()
-    addresses = helper.getMultiple()
+    addresses = helper.getMultiple(userName=loginPlugin.current_user.username)
     csvAddresses = CSVHelper().convertToCSV(addresses, helper.getCreationFields())
     return HTTPResponse(csvAddresses, status=200, header={'Content-Type': 'text/csv', 'Content-disposition': 'attachment;filename=addresses.csv'})
 
@@ -163,7 +163,7 @@ def csv_import():
     addresses = CSVHelper().convertFromCSV('contacts.csv')
     atleastOneFailed = False
     for address in addresses:
-        if helper.create(address) == -1:
+        if helper.create(address, userName=loginPlugin.current_user.username) == -1:
             atleastOneFailed = True
     if not atleastOneFailed:
         return HTTPResponse(status=200)
