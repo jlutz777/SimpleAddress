@@ -56,7 +56,7 @@ class AddressServer(Application):
         self.app.route('/register', 'POST', callback=post_register)
         self.app.route(VALIDATE_REGISTRATION_PATH + '/<registration_code>', 'GET', callback=validate_registration)
         self.app.route(CHANGE_PASSWORD_PATH + '/<reset_code>', 'GET', callback=get_change_password)
-        self.app.route(CHANGE_PASSWORD_PATH + , 'POST', callback=post_change_password)
+        self.app.route(CHANGE_PASSWORD_PATH, 'POST', callback=post_change_password)
 
         self.app.route('/', 'GET', callback=index, apply=check_login)
         self.app.route('/addresses', 'GET', callback=get_addresses, apply=check_login)
