@@ -19,13 +19,20 @@ var AddressListCtrl = function($scope, $http, $modal)
         {
             "first_name": $scope.newaddress.first_name,
             "last_name": $scope.newaddress.last_name,
-            // add spouse, kids, other info
+            "spouse": $scope.newaddress.spouse,
+            "email_address": $scope.newaddress.email_address,
             "street_1": $scope.newaddress.street_1,
             "street_2": $scope.newaddress.street_2 || '',
             "city": $scope.newaddress.city,
             "state": $scope.newaddress.state,
             "zip": $scope.newaddress.zip,
-            "country": $scope.newaddress.country || ''
+            "country": $scope.newaddress.country || '',
+            "home_phone": $scope.newaddress.home_phone,
+            "mobile_phone": $scope.newaddress.mobile_phone,
+            "relationship": $scope.newaddress.relationship,
+            "title": $scope.newaddress.title,
+            "children": $scope.newaddress.children,
+            "label_name": $scope.newaddress.label_name
         };
 
         $http.post('addresses', newAddress).success(function(data, status, headers, config)
