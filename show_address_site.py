@@ -17,12 +17,6 @@ TEMPLATE_PATH.append(os.path.join(MODULEPATH,"views"))
 LOGIN_PATH = '/login'
 CHANGE_PASSWORD_PATH = '/change_password'
 VALIDATE_REGISTRATION_PATH = '/validate_registration'
-MONGO_URL = os.environ.get('MONGOHQ_URL')
-MONGO_DB = os.environ.get('MONGOHQ_DB')
-EMAIL_PASS = os.environ.get('EMAIL_PASSWORD')
-
-mb = MongoDBBackend(MONGO_DB, MONGO_URL)
-loginPlugin = Cork(backend=mb, email_sender='jlutz777@gmail.com', smtp_url='starttls://jlutz777@gmail.com:' + EMAIL_PASS + '@smtp.gmail.com:587')
 
 class AddressServer(Application):
     """Strongly borrowed from:  http://damianzaremba.co.uk/2012/08/running-a-wsgi-app-via-gunicorn-from-python/"""
@@ -33,10 +27,20 @@ class AddressServer(Application):
         self.prog = None
         self.options = options
         self.do_load_config()
+
+        self.setup_cork()
+
         super(AddressServer, self).__init__()
         self.app = Bottle()
         self.add_routes()
         self.add_middleware()
+
+    def setup_cork(self):
+        EMAIL_PASS = os.environ.get('EMAIL_PASSWORD')
+        self.MONGO_DB = os.environ.get('MONGOHQ_DB')
+        self.MONGO_URL = os.environ.get('MONGOHQ_URL')
+        mb = MongoDBBackend(self.MONGO_DB, self.MONGO_URL)
+        self.loginPlugin = Cork(backend=mb, email_sender='jlutz777@gmail.com', smtp_url='starttls://jlutz777@gmail.com:' + EMAIL_PASS + '@smtp.gmail.com:587')
 
     def add_middleware(self):
         session_opts = {
@@ -58,13 +62,13 @@ class AddressServer(Application):
         self.app.route(CHANGE_PASSWORD_PATH + '/<reset_code>', 'GET', callback=get_change_password)
         self.app.route(CHANGE_PASSWORD_PATH, 'POST', callback=post_change_password)
 
-        self.app.route('/', 'GET', callback=index, apply=check_login)
-        self.app.route('/addresses', 'GET', callback=get_addresses, apply=check_login)
-        self.app.route('/addresses', 'POST', callback=post_addresses, apply=check_login)
-        self.app.route('/addresses', 'PUT', callback=put_addresses, apply=check_login)
-        self.app.route('/addresses/<deleteId>', 'DELETE', callback=delete_addresses, apply=check_login)
-        self.app.route('/csv', 'GET', callback=csv_export, apply=check_login)
-        self.app.route('/importcsv', 'GET', callback=csv_import, apply=check_login)
+        self.app.route('/', 'GET', callback=index, apply=self.check_login)
+        self.app.route('/addresses', 'GET', callback=get_addresses, apply=self.check_login)
+        self.app.route('/addresses', 'POST', callback=post_addresses, apply=self.check_login)
+        self.app.route('/addresses', 'PUT', callback=put_addresses, apply=self.check_login)
+        self.app.route('/addresses/<deleteId>', 'DELETE', callback=delete_addresses, apply=self.check_login)
+        self.app.route('/csv', 'GET', callback=csv_export, apply=self.check_login)
+        self.app.route('/importcsv', 'GET', callback=csv_import, apply=self.check_login)
 
         self.app.route('/js/<filename>', 'GET', callback=js_static)
         self.app.route('/css/<filename>', 'GET', callback=css_static)
@@ -79,12 +83,14 @@ class AddressServer(Application):
     def load(self):
         return self.app
 
-@hook('before_request')
-def check_login(fn):
-    def check_uid(**kwargs):
-        loginPlugin.require(fail_redirect=LOGIN_PATH)
-        return fn(**kwargs)
-    return check_uid
+    @hook('before_request')
+    def check_login(self, fn):
+        def check_uid(**kwargs):
+            self.loginPlugin.require(fail_redirect=LOGIN_PATH)
+            kwargs["helper"] = AddressModel(self.MONGO_URL, self.MONGO_DB)
+            kwargs["loginPlugin"] = self.loginPlugin
+            return fn(**kwargs)
+        return check_uid
 
 def post_get(name, default=''):
     return request.POST.get(name, default).strip()
@@ -115,18 +121,16 @@ def post_change_password():
     loginPlugin.reset_password(post_get('reset_code'), post_get('password'))
     return 'Thanks. <a href="/login">Go to login</a>'
 
-def index():
-    address_fields=AddressModel().getCreationFields()
+def index(helper, loginPlugin):
+    address_fields=helper.getCreationFields()
     return template('home.html', address_fields=address_fields)
 
-def get_addresses():
-    helper = AddressModel()
+def get_addresses(helper, loginPlugin):
     addresses = helper.getMultiple(userName=loginPlugin.current_user.username)
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200, header={'Content-Type':'application/json'})
 
-def post_addresses():
-    helper = AddressModel()
+def post_addresses(helper, loginPlugin):
     throwAway, newAddress = JSONHelper().decode(request.body.read())
 
     postId = helper.create(newAddress, userName=loginPlugin.current_user.username)
@@ -135,8 +139,7 @@ def post_addresses():
     else:
         return return_error(400, "Create did not work.")
 
-def put_addresses():
-    helper = AddressModel()
+def put_addresses(helper, loginPlugin):
     ids, decodeds = JSONHelper().decode(request.body.read())
 
     if helper.updateMultiple(ids, decodeds, userName=loginPlugin.current_user.username):
@@ -144,22 +147,18 @@ def put_addresses():
     else:
         return return_error(400, "Update did not work.")
 
-def delete_addresses(deleteId):
-    helper = AddressModel()
-
+def delete_addresses(deleteId, helper, loginPlugin):
     if helper.delete(strToId(deleteId), userName=loginPlugin.current_user.username):
         return HTTPResponse(status=200)
     else:
         return return_error(400, "Delete did not work")
 
-def csv_export():
-    helper = AddressModel()
+def csv_export(helper):
     addresses = helper.getMultiple(userName=loginPlugin.current_user.username)
     csvAddresses = CSVHelper().convertToCSV(addresses, helper.getCreationFields())
     return HTTPResponse(csvAddresses, status=200, header={'Content-Type': 'text/csv', 'Content-disposition': 'attachment;filename=addresses.csv'})
 
-def csv_import():
-    helper = AddressModel()
+def csv_import(helper, loginPlugin):
     addresses = CSVHelper().convertFromCSV('contacts.csv')
     atleastOneFailed = False
     for address in addresses:
@@ -177,6 +176,7 @@ def css_static(filename):
     return static_file(filename, root=os.path.join(MODULEPATH, 'static/css'))
 
 def return_error(status, msg=''):
+    json_err = JSONHelper().encode({'error':msg})
     json_err = JSONHelper().encode({'error':msg})
     return HTTPResponse(json_err, status=status, header={'Content-Type':'application/json'})
 

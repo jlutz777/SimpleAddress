@@ -5,9 +5,8 @@ import os
 class DataModel(object):
     fields = []
 
-    def __init__(self, dbName, tableName):
-        MONGO_URL = os.environ.get('MONGOHQ_URL')
-        client = MongoClient(MONGO_URL)
+    def __init__(self, mongoUrl, dbName, tableName):
+        client = MongoClient(mongoUrl)
         db = client[dbName]
         self.table = db[tableName]
 
