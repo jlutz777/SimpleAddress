@@ -1,5 +1,4 @@
 from dataobject import DataModel
-import os
 
 class AddressModel(DataModel):
     def __init__(self, mongoUrl, dbName, collectionName='simpleaddresses'):

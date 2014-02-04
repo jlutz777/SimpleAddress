@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 from libraries.utils import fieldsFromFieldNameArray
-import os
 
 class DataModel(object):
     fields = []

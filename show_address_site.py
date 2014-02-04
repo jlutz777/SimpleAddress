@@ -1,6 +1,6 @@
-from bottle import Bottle, hook, HTTPResponse, redirect, request, route, run, TEMPLATE_PATH, jinja2_template as template, static_file, debug
+from bottle import Bottle, hook, HTTPResponse, request, TEMPLATE_PATH, jinja2_template as template, static_file, debug
 from beaker.middleware import SessionMiddleware
-from cork import Cork
+from cork import Cork, AuthException
 from cork.backends import MongoDBBackend
 from gunicorn.app.base import Application
 from libraries.utils import JSONHelper, strToId, CSVHelper
@@ -55,12 +55,13 @@ class AddressServer(Application):
 
     def add_routes(self):
         self.app.route(LOGIN_PATH, 'GET', callback=get_login)
-        self.app.route(LOGIN_PATH, 'POST', callback=post_login)
-        self.app.route('/logout', 'GET', callback=logout)
-        self.app.route('/register', 'POST', callback=post_register)
-        self.app.route(VALIDATE_REGISTRATION_PATH + '/<registration_code>', 'GET', callback=validate_registration)
+        self.app.route(LOGIN_PATH, 'POST', callback=post_login, apply=self.add_login_plugin)
+        self.app.route('/logout', 'GET', callback=logout, apply=self.add_login_plugin)
+        self.app.route('/register', 'POST', callback=post_register, apply=self.add_login_plugin)
+        self.app.route(VALIDATE_REGISTRATION_PATH + '/<registration_code>', 'GET', callback=validate_registration, apply=self.add_login_plugin)
         self.app.route(CHANGE_PASSWORD_PATH + '/<reset_code>', 'GET', callback=get_change_password)
-        self.app.route(CHANGE_PASSWORD_PATH, 'POST', callback=post_change_password)
+        self.app.route(CHANGE_PASSWORD_PATH, 'POST', callback=post_change_password, apply=self.add_login_plugin)
+        self.app.route('/reset_password', 'POST', callback=reset_password, apply=self.add_login_plugin)
 
         self.app.route('/', 'GET', callback=index, apply=self.check_login)
         self.app.route('/addresses', 'GET', callback=get_addresses, apply=self.check_login)
@@ -92,32 +93,47 @@ class AddressServer(Application):
             return fn(**kwargs)
         return check_uid
 
+    @hook('before_request')
+    def add_login_plugin(self, fn):
+        def add_plugin(**kwargs):
+            kwargs["loginPlugin"] = self.loginPlugin
+            return fn(**kwargs)
+        return add_plugin
+
 def post_get(name, default=''):
     return request.POST.get(name, default).strip()
 
 def get_login():
     return template('login_form.html')
 
-def post_login():
+def post_login(loginPlugin):
     username = post_get('username')
     password = post_get('password')
     loginPlugin.login(username, password, success_redirect='/', fail_redirect=LOGIN_PATH)
 
-def logout():
+def logout(loginPlugin):
     loginPlugin.logout(success_redirect=LOGIN_PATH)
 
-def post_register():
+def post_register(loginPlugin):
     loginPlugin.register(post_get('username'), post_get('password'), post_get('email_address'))
     return 'Please check your mailbox'
 
-def validate_registration(registration_code):
+def validate_registration(loginPlugin, registration_code):
     loginPlugin.validate_registration(registration_code)
     return 'Thanks. <a href="/login">Go to login</a>'
+
+def reset_password(loginPlugin):
+    """Send out password reset email"""
+    try:
+        loginPlugin.send_password_reset_email(username=post_get('username'), email_addr=post_get('email_address'))
+    except AuthException:
+        return 'Invalid username or email address.'
+    return 'Please check your mailbox.'
 
 def get_change_password(reset_code):
     return template('password_reset_form.html', reset_code=reset_code)
 
-def post_change_password():
+def post_change_password(loginPlugin):
     loginPlugin.reset_password(post_get('reset_code'), post_get('password'))
     return 'Thanks. <a href="/login">Go to login</a>'
 
@@ -153,7 +169,7 @@ def delete_addresses(deleteId, helper, loginPlugin):
     else:
         return return_error(400, "Delete did not work")
 
-def csv_export(helper):
+def csv_export(helper, loginPlugin):
     addresses = helper.getMultiple(userName=loginPlugin.current_user.username)
     csvAddresses = CSVHelper().convertToCSV(addresses, helper.getCreationFields())
     return HTTPResponse(csvAddresses, status=200, header={'Content-Type': 'text/csv', 'Content-disposition': 'attachment;filename=addresses.csv'})
