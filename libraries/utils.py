@@ -5,6 +5,7 @@ import csv
 import json
 from pymongo.cursor import Cursor
 
+
 class JSONHelper:
     def encode(self, o):
         if isinstance(o, Cursor):
@@ -37,6 +38,7 @@ class JSONHelper:
         else:
             return self.pullId(data)
 
+
 class CSVHelper:
     def convertToCSV(self, o, orderedFields):
         output = io.BytesIO()
@@ -61,13 +63,16 @@ class CSVHelper:
             convertedData.append(thisRow)
         return convertedData
 
+
 def idToStr(row):
     for key in row:
         if key == '_id':
             row[key] = str(row[key])
 
+
 def strToId(thisStr):
     return ObjectId(thisStr)
+
 
 def fieldsFromFieldNameArray(fieldNameArray):
     fields = []
@@ -75,6 +80,7 @@ def fieldsFromFieldNameArray(fieldNameArray):
         if field != "_id":
             fields.append(Field(field))
     return fields
+
 
 class Field:
     name = ''
@@ -92,4 +98,3 @@ class Field:
 
     def __repr__(self):
         return self.placeholder
-

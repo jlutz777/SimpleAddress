@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from libraries.utils import fieldsFromFieldNameArray
 
+
 class DataModel(object):
     fields = []
 
@@ -14,11 +15,8 @@ class DataModel(object):
             asc = 1
         else:
             asc = -1
-        return self.table.find( {'$query': {'userName' : userName}, '$orderby': { sortColumn : asc } })
-
-    # If ever needed, do the check for username
-    #def get(self, criteria):
-    #    return self.table.find_one(criteria)
+        return self.table.find({'$query': {'userName': userName},
+                               '$orderby': {sortColumn: asc}})
 
     def create(self, item, userName):
         item['userName'] = userName
@@ -38,7 +36,8 @@ class DataModel(object):
 
     def update(self, thisId, item, userName):
         item['userName'] = userName
-        res = self.table.update({'_id': thisId, 'userName': userName}, {'$set': item})
+        res = self.table.update({'_id': thisId, 'userName': userName},
+                                {'$set': item})
         if res[u'updatedExisting'] and res[u'err'] is None:
             return True
         else:
@@ -47,7 +46,7 @@ class DataModel(object):
     def delete(self, thisId, userName):
         res = self.table.remove({'_id': thisId, 'userName': userName})
         print str(res)
-        if res[u'err'] is None and res[u'n'] <> 0:
+        if res[u'err'] is None and res[u'n'] != 0:
             return True
         else:
             return False
