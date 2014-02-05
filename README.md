@@ -15,7 +15,8 @@ AngularJS<br />
 UI bootstrap<br />
 Jinja templating<br />
 Koding for developing<br />
-Heroku for deploying and hosting
+Heroku for deploying and hosting<br />
+PEP8, PyFlakes, and PEP257<br />
 
 <b>Currently the following aspects are not completed:</b><br />
 Searching<br />
