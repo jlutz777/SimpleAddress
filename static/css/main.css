@@ -9,13 +9,13 @@ body
     font:1em helvetica, arial, sans-serif;
 }
 
-div#mainwrapper
+#mainwrapper
 {
     min-width:600px; max-width: 1000px;
     margin: 0 auto;
 }
 
-div#contentwrapper
+#contentwrapper
 {
     float: left;
     width: 100%;
@@ -28,7 +28,7 @@ header
     margin: 10px;
 }
 
-div#contentwrapper > section
+#contentwrapper > section
 {
     float: left;
     width: auto;
@@ -42,7 +42,12 @@ aside
     padding: 20px 0;
 }
 
-div.accordion-inner p
+.accordion-inner p
 {
     margin: 0;
+}
+
+#addressTable td
+{
+    padding: 5px 0 0 5px;
 }

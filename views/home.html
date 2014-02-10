@@ -5,28 +5,12 @@
 <title>Simple Address</title>
 <head>
 <link href="css/bootstrap-combined.min.css" rel="stylesheet">
+<link href="css/ng-table.min.css" rel="stylesheet">
 <link href="css/main.css" rel="stylesheet">
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"> </script>
+<script src="js/ng-table.min.js"></script>
 <script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
 <script src="js/controllers.js"></script>
-<script type="text/javascript">
-angular.module('SimpleAddress', ['ui.bootstrap']);
-
-function AlertDemoCtrl($scope) {
-  $scope.alerts = [
-    { type: 'error', msg: 'Oh snap! Change a few things up and try submitting again.' }, 
-    { type: 'success', msg: 'Well done! You successfully read this important alert message.' }
-  ];
-
-  $scope.addAlert = function() {
-    $scope.alerts.push({msg: "Another alert!"});
-  };
-
-  $scope.closeAlert = function(index) {
-    $scope.alerts.splice(index, 1);
-  };
-}
-</script>
 
 </head>
 <body ng-controller="AddressListCtrl">
@@ -35,8 +19,14 @@ function AlertDemoCtrl($scope) {
     <div id="contentwrapper">
     <section>
     <h2>Your Addresses</h2>
-    <accordion close-others="true">
-        <accordion-group heading="{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}" ng-repeat="address in addresses">
+    <table id="addressTable" ng-table="tableParams" show-filter="true" template-pagination="custom/pager">
+        <tr ng-repeat="address in $data">
+            <td data-title="'Filter By Name, Spouse, or Children'" filter="{ 'first_name': 'text' }">{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</td>
+            <td><button class="btn btn-primary" ng-click="open(address)">Edit</button></td>
+            <td><button class="btn btn-warning" ng-click="remove(address)">Delete</button></td>
+        </tr>
+    </table>
+    <!-- Save for the "details view" to be added back in later
             <p>{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</p>
             <p>{{"{{"}}address.street_1{{"}}"}}</p>
             <p>{{"{{"}}address.street_2{{"}}"}}</p>
@@ -45,8 +35,7 @@ function AlertDemoCtrl($scope) {
             <p>Label: {{"{{"}}address.label_name{{"}}"}}</p>
             <button class="btn btn-primary" ng-click="open(address)">Edit</button>
             <button class="btn btn-warning" ng-click="remove(address)">Delete</button>
-        </accordion-group>
-    </accordion>
+    -->
     </section>
     <aside>
     <h2>Add a New Address</h2>
@@ -92,6 +81,24 @@ function AlertDemoCtrl($scope) {
                 <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
             </div>
         </script>
+        <script type="text/ng-template" id="custom/pager">
+        <ul class="pager ng-cloak">
+          <li ng-repeat="page in pages"
+                ng-class="{'disabled': !page.active, 'previous': page.type == 'prev', 'next': page.type == 'next'}"
+                ng-show="page.type == 'prev' || page.type == 'next'" ng-switch="page.type">
+            <a ng-switch-when="prev" ng-click="params.page(page.number)" href="">&laquo; Previous</a>
+            <a ng-switch-when="next" ng-click="params.page(page.number)" href="">Next &raquo;</a>
+          </li>
+            <li> 
+            <div class="btn-group">
+                <button type="button" ng-class="{'active':params.count() == 10}" ng-click="params.count(10)" class="btn btn-default">10</button>
+                <button type="button" ng-class="{'active':params.count() == 25}" ng-click="params.count(25)" class="btn btn-default">25</button>
+                <button type="button" ng-class="{'active':params.count() == 50}" ng-click="params.count(50)" class="btn btn-default">50</button>
+                <button type="button" ng-class="{'active':params.count() == 100}" ng-click="params.count(100)" class="btn btn-default">100</button>
+            </div>
+            </li>
+        </ul>
+    </script>
 </div>
 </body>
 </html>

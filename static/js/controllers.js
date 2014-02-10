@@ -1,8 +1,44 @@
-var AddressListCtrl = function($scope, $http, $modal)
-{
+var app = angular.module('SimpleAddress', ['ui.bootstrap', 'ngTable']).
+controller('AddressListCtrl', function($scope, $filter, ngTableParams, $http, $modal) {
+    $scope.addresses = [];
+    
     $http.get('addresses').success(function(addresses)
         {
             $scope.addresses = addresses;
+            
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                filter: {
+                    'first_name': '',        // initial filter
+                }
+            }, {
+                total: $scope.addresses.length, // length of data
+                getData: function($defer, params) {
+                    // Do my own filtering because I want to compare to multiple fields
+                    var orderedData = [];
+                    var myFilter = params.filter() ? params.filter().first_name : '';
+                    if (myFilter)
+                    {
+                        var re = new RegExp(myFilter, 'i');
+                        for (var i=0, length=$scope.addresses.length; i<length; ++i)
+                        {
+                            var address = $scope.addresses[i];
+                            if (re.test(address.first_name + " " + address.last_name) || re.test(address.spouse))
+                            {
+                                orderedData.push(address);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        orderedData = $scope.addresses;
+                    }
+                    var filtered = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length); // set total for recalc pagination
+                    $defer.resolve(filtered);
+                }
+            });
         }).error(function(err)
         {
             alert(err);
@@ -86,7 +122,7 @@ var AddressListCtrl = function($scope, $http, $modal)
                     });
                 });
     };
-}
+});
 
 var ModalEditCtrl = function ($scope, $modalInstance, address)
 {
@@ -114,4 +150,19 @@ var ModalRemoveCtrl = function($scope, $modalInstance)
     {
         $modalInstance.dismiss('cancel');
     };
+};
+
+function AlertDemoCtrl($scope) {
+  $scope.alerts = [
+    { type: 'error', msg: 'Oh snap! Change a few things up and try submitting again.' }, 
+    { type: 'success', msg: 'Well done! You successfully read this important alert message.' }
+  ];
+
+  $scope.addAlert = function() {
+    $scope.alerts.push({msg: "Another alert!"});
+  };
+
+  $scope.closeAlert = function(index) {
+    $scope.alerts.splice(index, 1);
+  };
 };
