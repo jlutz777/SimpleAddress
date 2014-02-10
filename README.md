@@ -18,8 +18,4 @@ Koding for developing<br />
 Heroku for deploying and hosting<br />
 PEP8, PyFlakes, and PEP257<br />
 
-<b>Currently the following aspects are not completed:</b><br />
-Searching<br />
-Advanced filtering<br />
-
 Feel free to borrow/steal any code you see.  I want others to learn as much as I did.
