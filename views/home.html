@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="SimpleAddress">
+<html lang="en" data-ng-app="SimpleAddress">
 <head>
 <meta charset="utf-8">
 <title>Simple Address</title>
@@ -13,19 +13,21 @@
 <script src="js/controllers.js"></script>
 
 </head>
-<body ng-controller="AddressListCtrl">
+<body data-ng-controller="AddressListCtrl">
     <div id="mainwrapper">
     <header><h1>SimpleAddress - Track Your Addresses Simply</h1></header>
     <div id="contentwrapper">
-    <section>
+    <section id="stuff">
     <h2>Your Addresses</h2>
-    <table id="addressTable" ng-table="tableParams" show-filter="true" template-pagination="custom/pager">
-        <tr ng-repeat="address in $data">
-            <td data-title="'Filter By Name, Spouse, or Children'" filter="{ 'first_name': 'text' }">{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</td>
-            <td><button class="btn btn-primary" ng-click="open(address)">Edit</button></td>
-            <td><button class="btn btn-warning" ng-click="remove(address)">Delete</button></td>
-        </tr>
-    </table>
+    <input type="text" data-ng-model="search" placeholder="Search" data-ng-change="filter()" /><br/>
+    <ul>
+        <li data-ng-repeat="address in filtered = (addresses | filter:mySearch) | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+            {{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}
+            <button class="btn btn-primary" ng-click="open(address)">Edit</button></td>
+            <td><button class="btn btn-warning" ng-click="remove(address)">Delete</button>
+        </li>
+    </ul>
+    <pagination data-boundary-links="true" data-max-size="maxSize" data-total-items="totalItems" data-num-pages="noOfPages" data-page="currentPage" class="pagination-small" data-previous-text="&laquo;" data-next-text="&raquo;"></pagination>
     <!-- Save for the "details view" to be added back in later
             <p>{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</p>
             <p>{{"{{"}}address.street_1{{"}}"}}</p>

@@ -1,44 +1,50 @@
-var app = angular.module('SimpleAddress', ['ui.bootstrap', 'ngTable']).
-controller('AddressListCtrl', function($scope, $filter, ngTableParams, $http, $modal) {
+var app = angular.module('SimpleAddress', ['ui.bootstrap']);
+
+app.filter('startFrom', function() {
+    return function(input, start) {
+        if(input) {
+            start = +start;
+            return input.slice(start);
+        }
+        return [];
+    }
+});
+
+function AddressListCtrl($scope, $timeout, $http, $modal) {
     $scope.addresses = [];
+    
+    // Set up filtering and pagination vars
+    $scope.totalItems = 0;
+    $scope.currentPage = 1;
+    $scope.noOfPages = 1;
+    // max number of pages to display
+    $scope.maxSize = 5;
+    // number per page
+    $scope.entryLimit = 10;
+    
+    $scope.setPage = function(pageNo) {
+        $scope.currentPage = pageNo;
+    };
+
+    $scope.filter = function() {
+        $timeout(function() {
+            // wait for 'filtered' to be changed
+            $scope.noOfPages = Math.ceil($scope.filtered.length/$scope.entryLimit);
+            $scope.totalItems = $scope.filtered.length;
+        }, 10);
+    };
+    
+    // Currently look for first and last name, along with spouse
+    $scope.mySearch = function(address) {
+        var re = new RegExp($scope.search, 'i');
+        return re.test(address.first_name + " " + address.last_name) || re.test(address.spouse);
+    };
     
     $http.get('addresses').success(function(addresses)
         {
             $scope.addresses = addresses;
-            
-            $scope.tableParams = new ngTableParams({
-                page: 1,            // show first page
-                count: 10,          // count per page
-                filter: {
-                    'first_name': '',        // initial filter
-                }
-            }, {
-                total: $scope.addresses.length, // length of data
-                getData: function($defer, params) {
-                    // Do my own filtering because I want to compare to multiple fields
-                    var orderedData = [];
-                    var myFilter = params.filter() ? params.filter().first_name : '';
-                    if (myFilter)
-                    {
-                        var re = new RegExp(myFilter, 'i');
-                        for (var i=0, length=$scope.addresses.length; i<length; ++i)
-                        {
-                            var address = $scope.addresses[i];
-                            if (re.test(address.first_name + " " + address.last_name) || re.test(address.spouse))
-                            {
-                                orderedData.push(address);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        orderedData = $scope.addresses;
-                    }
-                    var filtered = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length); // set total for recalc pagination
-                    $defer.resolve(filtered);
-                }
-            });
+            $scope.noOfPages = Math.ceil($scope.addresses.length/$scope.entryLimit);
+            $scope.totalItems = $scope.addresses.length;
         }).error(function(err)
         {
             alert(err);
@@ -122,7 +128,7 @@ controller('AddressListCtrl', function($scope, $filter, ngTableParams, $http, $m
                     });
                 });
     };
-});
+}
 
 var ModalEditCtrl = function ($scope, $modalInstance, address)
 {
@@ -165,4 +171,4 @@ function AlertDemoCtrl($scope) {
   $scope.closeAlert = function(index) {
     $scope.alerts.splice(index, 1);
   };
-};
+}
