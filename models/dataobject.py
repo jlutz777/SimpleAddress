@@ -10,13 +10,22 @@ class DataModel(object):
         db = client[dbName]
         self.table = db[tableName]
 
-    def getMultiple(self, userName, sortColumn='last_name', asc=True):
+    def getMultiple(self, userName, sortColumn='last_name',
+                    secondSortColumn='', asc=True):
         if asc:
             asc = 1
         else:
             asc = -1
-        return self.table.find({'$query': {'userName': userName},
-                               '$orderby': {sortColumn: asc}})
+
+        if secondSortColumn == '':
+            return self.table.find({'$query': {'userName': userName},
+                                    '$orderby': {sortColumn: asc}})
+        else:
+            self.table.ensure_index([('userName', asc), (sortColumn, asc),
+                                     (secondSortColumn, asc)])
+            return self.table.find({'$query': {'userName': userName}}) \
+                             .sort([(sortColumn, asc),
+                                    (secondSortColumn, asc)])
 
     def create(self, item, userName):
         item['userName'] = userName

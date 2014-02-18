@@ -182,7 +182,8 @@ def index(helper, userName):
 
 
 def get_addresses(helper, userName):
-    addresses = helper.getMultiple(userName=userName)
+    addresses = helper.getMultiple(userName=userName, sortColumn='last_name',
+                                   secondSortColumn='first_name')
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200,
                         header={'Content-Type': 'application/json'})

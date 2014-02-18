@@ -1,7 +1,8 @@
-*, h1, h2, h3, h4, h5, h6
+*
 {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 body
@@ -9,45 +10,61 @@ body
     font:1em helvetica, arial, sans-serif;
 }
 
-#mainwrapper
+h1
 {
-    min-width:600px; max-width: 1000px;
-    margin: 0 auto;
-}
-
-#contentwrapper
-{
-    float: left;
-    width: 100%;
+    text-align: center;
 }
 
 header
 {
-    background: #dcd9c0;
     padding: 5px 10px;
     margin: 10px;
 }
 
-#contentwrapper > section
+input
 {
+    box-sizing: content-box;
+}
+
+.contentwrapper {
+    margin-bottom: 1em;
+    overflow: hidden;
+}
+
+.col-group > section, aside {
+  padding: 1em;
+  margin-bottom: 1em;  
+}
+
+@media screen and (min-width: 44em) {
+  .col-group {
+    overflow: hidden;
+  }
+  .col-group > section, aside {
     float: left;
-    width: auto;
-    padding: 20px;
+    width: 50%;
+  }
 }
 
-aside
+#mainwrapper
 {
-    float: right;
-    width: 300px;
-    padding: 20px 0;
-}
-
-.accordion-inner p
-{
-    margin: 0;
+    margin: 0 auto;
 }
 
 #addressTable td
 {
     padding: 5px 0 0 5px;
+}
+
+#mainAddress {
+    display: table;
+}
+
+#mainAddress > div {
+    display: table-row;
+}
+
+#mainAddress > div div {
+    display: table-cell;
+    padding: 5px;
 }
