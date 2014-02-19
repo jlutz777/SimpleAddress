@@ -9,5 +9,6 @@ class AddressModel(DataModel):
         self.fields = ["first_name", "last_name", "spouse", "email_address",
                        "street_1", "street_2", "city", "state", "zip",
                        "country", "home_phone", "mobile_phone",
-                       "relationship", "title", "children", "label_name"]
+                       "relationship", "title", "children", "label_name",
+                       ("send_christmas_card", "checkBox")]
         return super(AddressModel, self).getCreationFields()

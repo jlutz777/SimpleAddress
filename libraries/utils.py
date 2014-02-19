@@ -77,7 +77,9 @@ def strToId(thisStr):
 def fieldsFromFieldNameArray(fieldNameArray):
     fields = []
     for field in fieldNameArray:
-        if field != "_id":
+        if type(field) is not str:
+            fields.append(Field(field[0], field[1]))
+        elif field != "_id":
             fields.append(Field(field))
     return fields
 
@@ -85,9 +87,11 @@ def fieldsFromFieldNameArray(fieldNameArray):
 class Field:
     name = ''
     placeholder = ''
+    fieldType = ''
 
-    def __init__(self, name):
+    def __init__(self, name, fieldType=''):
         self.name = name
+        self.fieldType = fieldType
         self.parsePlaceholderFromName()
 
     def parsePlaceholderFromName(self):
