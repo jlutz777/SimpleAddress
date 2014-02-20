@@ -182,8 +182,7 @@ def index(helper, userName):
 
 
 def get_addresses(helper, userName):
-    addresses = helper.getMultiple(userName=userName, sortColumn='last_name',
-                                   secondSortColumn='first_name')
+    addresses = helper.getMultiple(userName=userName)
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200,
                         header={'Content-Type': 'application/json'})
@@ -194,7 +193,7 @@ def post_addresses(helper, userName):
 
     postId = helper.create(newAddress, userName=userName)
     if postId != -1:
-        return HTTPResponse(JSONHelper().encode({'id': postId}), status=200,
+        return HTTPResponse(JSONHelper().encode({'_id': postId}), status=200,
                             header={'Content-Type': 'application/json'})
     else:
         return return_error(400, "Create did not work.")

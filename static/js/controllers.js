@@ -43,6 +43,11 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
     $http.get('addresses').success(function(addresses)
         {
             $scope.addresses = addresses;
+            
+            for (var prop in addresses[0])
+            {
+                console.log(prop);
+            }
             $scope.noOfPages = Math.ceil($scope.addresses.length/$scope.entryLimit);
             $scope.totalItems = $scope.addresses.length;
         }).error(function(err)
@@ -79,8 +84,8 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
 
         $http.post('addresses', newAddress).success(function(data, status, headers, config)
             {
-                $scope.addresses.push(newAddress);
                 newAddress._id = data._id;
+                $scope.addresses.push(newAddress);
             }).error(function(data, status, headers, config)
             {
                 alert("Failure creating with status " + status);

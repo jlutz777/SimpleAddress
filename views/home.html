@@ -4,10 +4,8 @@
     <meta charset="utf-8">
     <title>Simple Address</title>
     <link href="css/bootstrap-combined.min.css" rel="stylesheet">
-    <link href="css/ng-table.min.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.1.5/angular.min.js"> </script>
-    <script src="js/ng-table.min.js"></script>
     <script src="js/ui-bootstrap-tpls-0.6.0.js"></script>
     <script src="js/controllers.js"></script>
 </head>
@@ -22,7 +20,7 @@
                     <h2>Your Addresses</h2>
                     <input type="text" data-ng-model="search" placeholder="Search" data-ng-change="filter()" /><br/>
                     <div id="mainAddress">
-                        <div data-ng-repeat="address in filtered = (addresses | filter:mySearch) | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
+                        <div data-ng-repeat="address in filtered = (addresses | filter:mySearch) | orderBy:['last_name','first_name'] | startFrom:(currentPage-1)*entryLimit | limitTo:entryLimit">
                             <div ng-if="!address.street_2" tooltip-placement="bottom" tooltip-html-unsafe="{{"{{"}}address.street_1{{"}}"}}<br>{{"{{"}}address.city{{"}}"}}, {{"{{"}}address.state{{"}}"}} {{"{{"}}address.zip{{"}}"}}" tooltip-append-to-body="true">{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</div>
                             <div ng-if="!!address.street_2" tooltip-placement="bottom" tooltip-html-unsafe="{{"{{"}}address.street_1{{"}}"}}<br>{{"{{"}}address.street_2{{"}}"}}<br>{{"{{"}}address.city{{"}}"}}, {{"{{"}}address.state{{"}}"}} {{"{{"}}address.zip{{"}}"}}" tooltip-append-to-body="true">{{"{{"}}address.first_name{{"}}"}} {{"{{"}}address.last_name{{"}}"}}</div>
                             <div><button class="btn btn-primary" ng-click="open(address)">Edit</button></div>
