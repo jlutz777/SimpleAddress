@@ -68,11 +68,34 @@ class DataModel(object):
                                     (secondSortColumn, asc)])
 
     def create(self, item, userName):
+        """Create a new item and returns the id.
+
+        :param item: the object to be inserted
+        :type item: object
+        :param userName: the name of the user
+        :type userName: str
+        :returns: id of inserted item
+        :rtype: str
+
+        """
+
         item['userName'] = userName
-        # returns the new id
         return str(self.table.insert(item))
 
     def updateMultiple(self, ids, items, userName):
+        """Update a group of items and returns success.
+
+        :param ids: the ids of the items to be updated
+        :type ids: list or string
+        :param items: the objects to be updated
+        :type items: list or object
+        :param userName: the name of the user
+        :type userName: str
+        :returns: success of update
+        :rtype: bool
+
+        """
+
         if type(ids) is not list:
             return self.update(ids, items, userName)
         else:
@@ -84,6 +107,19 @@ class DataModel(object):
             return success
 
     def update(self, thisId, item, userName):
+        """Update a single item and returns success.
+
+        :param thisId: the id of the item to be updated
+        :type thisId: string
+        :param item: the object to be updated
+        :type item: object
+        :param userName: the name of the user
+        :type userName: str
+        :returns: success of update
+        :rtype: bool
+
+        """
+
         item['userName'] = userName
         res = self.table.update({'_id': thisId, 'userName': userName},
                                 {'$set': item})
@@ -93,6 +129,17 @@ class DataModel(object):
             return False
 
     def delete(self, thisId, userName):
+        """Update a single item and returns success.
+
+        :param thisId: the id of the item to be deleted
+        :type thisId: string
+        :param userName: the name of the user
+        :type userName: str
+        :returns: success of update
+        :rtype: bool
+
+        """
+
         res = self.table.remove({'_id': thisId, 'userName': userName})
         print str(res)
         if res[u'err'] is None and res[u'n'] != 0:
@@ -101,4 +148,11 @@ class DataModel(object):
             return False
 
     def getCreationFields(self):
+        """Return list of the fields for creating an item.
+
+        :returns: fields for creation of item
+        :rtype: list
+
+        """
+
         return fieldsFromFieldNameArray(self.fields)
