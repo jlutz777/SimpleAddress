@@ -92,7 +92,10 @@ class AddressServer(Application):
                        callback=delete_addresses, apply=self.check_login)
         self.app.route('/csv', 'GET', callback=csv_export,
                        apply=self.check_login)
-        self.app.route('/importcsv', 'GET', callback=csv_import,
+        self.app.route('/christmas_card', 'GET',
+                       callback=christmas_card_csv_export,
+                       apply=self.check_login)
+        self.app.route('/import_csv', 'GET', callback=csv_import,
                        apply=self.check_login)
 
         self.app.route('/js/<filename>', 'GET', callback=js_static)
@@ -220,6 +223,16 @@ def csv_export(helper, userName):
     csvAddresses = CSVHelper().convertToCSV(addresses,
                                             helper.getCreationFields())
     disposition = "attachment;filename=addresses.csv"
+    return HTTPResponse(csvAddresses, status=200,
+                        header={'Content-Type': 'text/csv',
+                                'Content-disposition': disposition})
+
+
+def christmas_card_csv_export(helper, userName):
+    addresses = helper.getMultiple(userName, {'send_christmas_card': True})
+    csvAddresses = CSVHelper().convertToCSV(addresses,
+                                            helper.getChristmasFields())
+    disposition = "attachment;filename=christmas_card.csv"
     return HTTPResponse(csvAddresses, status=200,
                         header={'Content-Type': 'text/csv',
                                 'Content-disposition': disposition})

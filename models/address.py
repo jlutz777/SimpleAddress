@@ -8,6 +8,7 @@ with anything.
 """
 
 from dataobject import DataModel
+from libraries.utils import fieldsFromFieldNameArray
 
 
 class AddressModel(DataModel):
@@ -24,7 +25,7 @@ class AddressModel(DataModel):
         super(AddressModel, self).__init__(mongoUrl, dbName, collectionName)
 
     def getCreationFields(self):
-        """Return array of fields for creating a new address.
+        """Return list of fields for creating a new address.
 
         :returns: creation fields
         :rtype: list
@@ -37,3 +38,14 @@ class AddressModel(DataModel):
                        "relationship", "title", "children", "label_name",
                        ("send_christmas_card", "checkBox")]
         return super(AddressModel, self).getCreationFields()
+
+    def getChristmasFields(self):
+        """Return list of fields needed for Christmas cards.
+
+        :returns: christmas fields
+        :rtype: list
+
+        """
+
+        return fieldsFromFieldNameArray(["label_name", "street_1", "street_2",
+                                         "city", "state", "zip", "country"])

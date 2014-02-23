@@ -33,12 +33,14 @@ class DataModel(object):
         db = client[dbName]
         self.table = db[tableName]
 
-    def getMultiple(self, userName, sortColumn='',
+    def getMultiple(self, userName, filterCriteria={}, sortColumn='',
                     secondSortColumn='', asc=True):
         """Return a list of objects associated with a user.
 
         :param userName: the name of the user
         :type userName: str
+        :param filterCriteria: criteria for the data to match (if needed)
+        :type filterCriteria: dict
         :param sortColumn: the sort column to use (if needed)
         :type sortColumn: str
         :param secondSortColumn: secondary sort solumn (if needed)
@@ -46,7 +48,7 @@ class DataModel(object):
         :param asc: sort direction, true for asc
         :type message: bool
         :returns: objects found
-        :rtype: list
+        :rtype: cursor
 
         """
 
@@ -55,23 +57,26 @@ class DataModel(object):
         else:
             asc = -1
 
+        # Copy over if anyone passes in a userName so you can't impersonate
+        filterCriteria['userName'] = userName
+
         if sortColumn == '':
-            return self.table.find({'$query': {'userName': userName}})
+            return self.table.find({'$query': filterCriteria})
         elif secondSortColumn == '':
-            return self.table.find({'$query': {'userName': userName},
+            return self.table.find({'$query': filterCriteria,
                                     '$orderby': {sortColumn: asc}})
         else:
             self.table.ensure_index([('userName', asc), (sortColumn, asc),
                                      (secondSortColumn, asc)])
-            return self.table.find({'$query': {'userName': userName}}) \
+            return self.table.find({'$query': filterCriteria}) \
                              .sort([(sortColumn, asc),
                                     (secondSortColumn, asc)])
 
     def create(self, item, userName):
         """Create a new item and returns the id.
 
-        :param item: the object to be inserted
-        :type item: object
+        :param item: the data to be inserted
+        :type item: str
         :param userName: the name of the user
         :type userName: str
         :returns: id of inserted item
@@ -111,8 +116,8 @@ class DataModel(object):
 
         :param thisId: the id of the item to be updated
         :type thisId: string
-        :param item: the object to be updated
-        :type item: object
+        :param item: the data to be updated
+        :type item: str
         :param userName: the name of the user
         :type userName: str
         :returns: success of update
