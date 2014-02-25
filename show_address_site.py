@@ -1,3 +1,15 @@
+"""
+This is the main file for starting up the entire address site.
+
+It wraps everything and glues it all together to grab the proper
+views, utilities, models, and static files.  The application itself
+runs wsgi via gunicorn and serves up the web with bottle.  Authentication
+is done through cork, templates through jinja, client side manipulation
+through AngularJS, css is mostly bootstrap, and the backend via MongoDB.
+The rest is custom code to bring it all together.
+
+"""
+
 from bottle import Bottle, hook, HTTPResponse, request, TEMPLATE_PATH
 from bottle import jinja2_template as template, static_file, debug
 from beaker.middleware import SessionMiddleware
@@ -22,9 +34,15 @@ VALIDATE_REGISTRATION_PATH = '/validate_registration'
 
 
 class AddressServer(Application):
-    """Strongly borrowed from:
+
+    """
+    This class is the gunicorn wrapper to serve up bottle.
+
+    Strongly borrowed from:
     http://damianzaremba.co.uk/2012/08/running-a-wsgi-
-    app-via-gunicorn-from-python/"""
+    app-via-gunicorn-from-python/
+
+    """
 
     def __init__(self, options={}):
         self.usage = None
@@ -41,6 +59,8 @@ class AddressServer(Application):
         self.add_middleware()
 
     def setup_cork(self):
+        """Set up cork using environment variables."""
+
         EMAIL = os.environ.get('EMAIL_SENDER')
         EMAIL_PASS = os.environ.get('EMAIL_PASSWORD')
         self.MONGO_DB = os.environ.get('MONGOHQ_DB')
@@ -51,6 +71,8 @@ class AddressServer(Application):
                                 EMAIL_PASS + '@smtp.gmail.com:587')
 
     def add_middleware(self):
+        """Set up the session middleware."""
+
         ENCRYPT_KEY = os.environ.get('ENCRYPT_KEY')
         session_opts = {
             'session.cookie_expires': True,
@@ -63,6 +85,8 @@ class AddressServer(Application):
         self.app = SessionMiddleware(self.app, session_opts)
 
     def add_routes(self):
+        """Add all the application routes."""
+
         self.app.route(LOGIN_PATH, 'GET', callback=get_login)
         self.app.route(LOGIN_PATH, 'POST', callback=post_login,
                        apply=self.add_login_plugin)
@@ -102,6 +126,14 @@ class AddressServer(Application):
         self.app.route('/css/<filename>', 'GET', callback=css_static)
 
     def init(self, *args):
+        """Add any options passed in to the config.
+
+        :param *args: the arguments of the application
+        :returns: config object
+        :rtype: dict
+
+        """
+
         cfg = {}
         for k, v in self.options.items():
             if k.lower() in self.cfg.settings and v is not None:
@@ -109,10 +141,20 @@ class AddressServer(Application):
         return cfg
 
     def load(self):
+        """Load and return the bottle app."""
+
         return self.app
 
     @hook('before_request')
     def check_login(self, fn):
+        """Hook for checking the login before doing logic.
+
+        :param fn: the function to call if the user is logged in
+        :returns: the wrapped function
+        :rtype: def
+
+        """
+
         def check_uid(**kwargs):
             self.loginPlugin.require(fail_redirect=LOGIN_PATH)
             kwargs["helper"] = AddressModel(self.MONGO_URL, self.MONGO_DB)
@@ -122,6 +164,14 @@ class AddressServer(Application):
 
     @hook('before_request')
     def add_login_plugin(self, fn):
+        """Hook for adding the plugin information.
+
+        :param fn: the function to pass the plugin
+        :returns: the wrapped function
+        :rtype: def
+
+        """
+
         def add_plugin(**kwargs):
             kwargs["loginPlugin"] = self.loginPlugin
             return fn(**kwargs)
@@ -159,7 +209,7 @@ def validate_registration(loginPlugin, registration_code):
 
 
 def reset_password(loginPlugin):
-    """Send out password reset email"""
+    """Send out password reset email."""
     try:
         userName = post_get('username')
         emailAddress = post_get('email_address')

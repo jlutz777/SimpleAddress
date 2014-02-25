@@ -86,7 +86,25 @@ class JSONHelper:
 
 
 class CSVHelper:
+
+    """
+    This class converts to and from CSV for you.
+
+    Given fields or a file, CSV conversion is done.
+
+    """
+
     def convertToCSV(self, o, orderedFields):
+        """Return a string in csv form.
+
+        :param o: the object to convert to csv
+        :param orderFields: the fields to convert
+        :type orderFields: list of fields
+        :returns: string in csv form
+        :rtype: str
+
+        """
+
         output = io.BytesIO()
         writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerow(orderedFields)
@@ -99,6 +117,15 @@ class CSVHelper:
         return output.getvalue()
 
     def convertFromCSV(self, fileName):
+        """Return a list of dictionaries from a csv file.
+
+        :param fileName: the filename to parse
+        :type fileName: str
+        :returns: a list of dictionaries from the csv info
+        :rtype: list
+
+        """
+
         reader = csv.reader(open(fileName), delimiter=',', quotechar='"')
         headers = reader.next()
         convertedData = []
@@ -111,18 +138,49 @@ class CSVHelper:
 
 
 def idToStr(row):
+    """Take a dictionary of data and convert the _id column to a str.
+
+    :param row: the dictionary to convert
+    :type row: dict
+    :returns: (nothing) ... converts inline
+
+    """
+
     for key in row:
         if key == '_id':
             row[key] = str(row[key])
+            break
 
 
 def strToId(thisStr):
+    """Return an ObjectId from a str.
+
+    :param thisStr: the string to convert to ObjectId
+    :type thisStr: str
+    :returns: the converted string
+    :rtype: ObjectId
+
+    """
+
     return ObjectId(thisStr)
 
 
-def fieldsFromFieldNameArray(fieldNameArray):
+def fieldsFromFieldNameArray(fieldNames):
+    """Return a list of fields based on field names.
+
+    Note that the field names follow a naming convention
+    in order to be properly converted.  They must have
+    underscores where words are separated.
+
+    :param fieldNames: the names of the fields
+    :type fileName: list
+    :returns: Fields for the given field names
+    :rtype: list
+
+    """
+
     fields = []
-    for field in fieldNameArray:
+    for field in fieldNames:
         if type(field) is not str:
             fields.append(Field(field[0], field[1]))
         elif field != "_id":
@@ -131,19 +189,41 @@ def fieldsFromFieldNameArray(fieldNameArray):
 
 
 class Field:
+
+    """
+    Field class to easily convert inputs to fields.
+
+    They store information, parse the placeholder test,
+    and store field types if given.
+
+    """
+
     name = ''
     placeholder = ''
     fieldType = ''
 
-    def __init__(self, name, fieldType=''):
+    def __init__(self, name, fieldType='', placeholder=''):
         self.name = name
         self.fieldType = fieldType
-        self.parsePlaceholderFromName()
+        if placeholder == '':
+            self.parsePlaceholderFromName()
+        else:
+            self.placeholder = placeholder
 
     def parsePlaceholderFromName(self):
-        pieces = self.name.split("_")
-        nameWithSpaces = " ".join(pieces)
-        self.placeholder = nameWithSpaces.title()
+        """Get the placeholder from the field name.
+
+        This uses a naming convention of underscores for
+        new words so it can be easily parsed.
+
+        :returns: the place holder text for the field
+
+        """
+
+        if self.placeholder == '':
+            pieces = self.name.split("_")
+            nameWithSpaces = " ".join(pieces)
+            self.placeholder = nameWithSpaces.title()
         return self.placeholder
 
     def __repr__(self):
