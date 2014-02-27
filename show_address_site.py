@@ -119,8 +119,8 @@ class AddressServer(Application):
         self.app.route('/christmas_card', 'GET',
                        callback=christmas_card_csv_export,
                        apply=self.check_login)
-        self.app.route('/import_csv', 'GET', callback=csv_import,
-                       apply=self.check_login)
+#        self.app.route('/import_csv', 'GET', callback=csv_import,
+#                       apply=self.check_login)
 
         self.app.route('/js/<filename>', 'GET', callback=js_static)
         self.app.route('/css/<filename>', 'GET', callback=css_static)
@@ -179,14 +179,43 @@ class AddressServer(Application):
 
 
 def post_get(name, default=''):
+    """Get posted information.
+
+    :param name: the key of the posted information
+    :type name: str
+    :param default: the default value if not found
+    :type default: str
+    :returns: the value of the posted information
+    :rtype: str
+
+    """
+
     return request.POST.get(name, default).strip()
 
 
 def get_login():
+    """The login page.
+
+    :returns: the html of the login page
+    :rtype: str
+
+    """
+
     return template('login_form.html')
 
 
 def post_login(loginPlugin):
+    """Handle the login page's post information.
+
+    If successful, it redirects to the home page, but if it fails
+    it goes back to the login page.
+
+    :param loginPlugin: the login plugin to authenticate against
+    :type loginPlugin: object
+    :returns: (nothing)
+
+    """
+
     username = post_get('username')
     password = post_get('password')
     loginPlugin.login(username, password, success_redirect='/',
@@ -194,22 +223,63 @@ def post_login(loginPlugin):
 
 
 def logout(loginPlugin):
+    """Log out the current user and redirect to the login page.
+
+    :param loginPlugin: the login plugin to log out
+    :type loginPlugin: object
+    :returns: (nothing)
+
+    """
+
     loginPlugin.logout(success_redirect=LOGIN_PATH)
 
 
 def post_register(loginPlugin):
+    """Register a new user based on post information.
+
+    :param loginPlugin: the login plugin to use to create a user
+    :type loginPlugin: object
+    :returns: the html after registering
+    :rtype: str
+
+    """
+
     loginPlugin.register(post_get('username'), post_get('password'),
                          post_get('email_address'))
     return 'Please check your mailbox'
 
 
 def validate_registration(loginPlugin, registration_code):
+    """Validate a registration so a new user can log in.
+
+    Once registered users receive an email, they will click on a link
+    to validate before logging in.
+
+    :param loginPlugin: the login plugin to validate against
+    :type loginPlugin: object
+    :param registration_code: the registration code from the email
+    :type registration_code: str
+    :returns: the html after validating
+    :rtype: str
+
+    """
+
     loginPlugin.validate_registration(registration_code)
     return 'Thanks. <a href="/login">Go to login</a>'
 
 
 def reset_password(loginPlugin):
-    """Send out password reset email."""
+    """Send out the password reset email.
+
+    If the email fails, this page will display an error message.
+
+    :param loginPlugin: the login plugin to user to reset the password
+    :type loginPlugin: object
+    :returns: the html after attempting to reset the password
+    :rtype: str
+
+    """
+
     try:
         userName = post_get('username')
         emailAddress = post_get('email_address')
@@ -221,20 +291,60 @@ def reset_password(loginPlugin):
 
 
 def get_change_password(reset_code):
+    """The change password page.
+
+    :param reset_code: the reset code to get a changed password
+    :type reset_code: str
+    :returns: the html after attempting to change the password
+    :rtype: str
+
+    """
+
     return template('password_reset_form.html', reset_code=reset_code)
 
 
 def post_change_password(loginPlugin):
+    """Reset the password of a user.
+
+    :param loginPlugin: the login plugin to user to change the password
+    :type loginPlugin: object
+    :returns: the html after resetting the password
+    :rtype: str
+
+    """
+
     loginPlugin.reset_password(post_get('reset_code'), post_get('password'))
     return 'Thanks. <a href="/login">Go to login</a>'
 
 
 def index(helper, userName):
+    """The home page.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: the html of the home page
+    :rtype: str
+
+    """
+
     address_fields = helper.getCreationFields()
     return template('home.html', address_fields=address_fields)
 
 
 def get_addresses(helper, userName):
+    """The JSON of all addresses for the given user.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: JSON data of all the addresses
+    :rtype: str
+
+    """
+
     addresses = helper.getMultiple(userName=userName)
     jsonAddresses = JSONHelper().encode(addresses)
     return HTTPResponse(jsonAddresses, status=200,
@@ -242,6 +352,17 @@ def get_addresses(helper, userName):
 
 
 def post_addresses(helper, userName):
+    """Create a new address.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: JSON data indicating success or not
+    :rtype: str
+
+    """
+
     throwAway, newAddress = JSONHelper().decode(request.body.read())
 
     postId = helper.create(newAddress, userName=userName)
@@ -253,6 +374,17 @@ def post_addresses(helper, userName):
 
 
 def put_addresses(helper, userName):
+    """Save changes to an address.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: JSON data indicating success or not
+    :rtype: str
+
+    """
+
     ids, decodeds = JSONHelper().decode(request.body.read())
 
     if helper.updateMultiple(ids, decodeds, userName=userName):
@@ -262,6 +394,19 @@ def put_addresses(helper, userName):
 
 
 def delete_addresses(deleteId, helper, userName):
+    """Delete an address.
+
+    :param deleteId: the id of the address to delete
+    :type deleteId: str
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: JSON data indicating success or not
+    :rtype: str
+
+    """
+
     if helper.delete(strToId(deleteId), userName=userName):
         return HTTPResponse(status=200)
     else:
@@ -269,6 +414,17 @@ def delete_addresses(deleteId, helper, userName):
 
 
 def csv_export(helper, userName):
+    """Export all addresses in the database as a csv file.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: HTTP response with the csv file download
+    :rtype: HTTPResponse
+
+    """
+
     addresses = helper.getMultiple(userName=userName)
     csvAddresses = CSVHelper().convertToCSV(addresses,
                                             helper.getCreationFields())
@@ -279,6 +435,17 @@ def csv_export(helper, userName):
 
 
 def christmas_card_csv_export(helper, userName):
+    """Export Christmas-approved addresses with applicable fields as a csv.
+
+    :param helper: the helper object to operate on the databaes
+    :type helper: DataObject
+    :param userName: the user name of the currently logged in user
+    :type userName: str
+    :returns: HTTP response with the csv file download
+    :rtype: HTTPResponse
+
+    """
+
     addresses = helper.getMultiple(userName, {'send_christmas_card': True})
     csvAddresses = CSVHelper().convertToCSV(addresses,
                                             helper.getChristmasFields())
@@ -288,27 +455,57 @@ def christmas_card_csv_export(helper, userName):
                                 'Content-disposition': disposition})
 
 
-def csv_import(helper, userName):
-    addresses = CSVHelper().convertFromCSV('contacts.csv')
-    atleastOneFailed = False
-    for address in addresses:
-        if helper.create(address, userName=userName) == -1:
-            atleastOneFailed = True
-    if not atleastOneFailed:
-        return HTTPResponse(status=200)
-    else:
-        return return_error(400, "Import did not work.")
+#This is really for testing purposes and needs updated to use for real.
+#def csv_import(helper, userName):
+#    addresses = CSVHelper().convertFromCSV('contacts.csv')
+#    atleastOneFailed = False
+#    for address in addresses:
+#        if helper.create(address, userName=userName) == -1:
+#            atleastOneFailed = True
+#    if not atleastOneFailed:
+#        return HTTPResponse(status=200)
+#    else:
+#        return return_error(400, "Import did not work.")
 
 
 def js_static(filename):
+    """Get static javascript files.
+
+    :param filename: the name of the javascript file
+    :type filename: str
+    :returns: The given js file
+    :rtype: file
+
+    """
+
     return static_file(filename, root=os.path.join(MODULEPATH, 'static/js'))
 
 
 def css_static(filename):
+    """Get static css files.
+
+    :param filename: the name of the css file
+    :type filename: str
+    :returns: The given css file
+    :rtype: file
+
+    """
+
     return static_file(filename, root=os.path.join(MODULEPATH, 'static/css'))
 
 
 def return_error(status, msg=''):
+    """Return a JSON error message.
+
+    :param status: the response code
+    :type status: int
+    :param msg: the message to return to the user
+    :type msg: str
+    :returns: The JSON data of the error
+    :rtype: str
+
+    """
+
     json_err = JSONHelper().encode({'error': msg})
     return HTTPResponse(json_err, status=status,
                         header={'Content-Type': 'application/json'})
