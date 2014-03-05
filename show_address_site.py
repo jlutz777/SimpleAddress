@@ -92,6 +92,8 @@ class AddressServer(Application):
                        apply=self.add_login_plugin)
         self.app.route('/logout', 'GET', callback=logout,
                        apply=self.add_login_plugin)
+        self.app.route('/register', 'GET', callback=get_register,
+                       apply=self.add_login_plugin)
         self.app.route('/register', 'POST', callback=post_register,
                        apply=self.add_login_plugin)
         self.app.route(VALIDATE_REGISTRATION_PATH + '/<registration_code>',
@@ -102,9 +104,9 @@ class AddressServer(Application):
         self.app.route(CHANGE_PASSWORD_PATH, 'POST',
                        callback=post_change_password,
                        apply=self.add_login_plugin)
-        self.app.route('/reset_password', 'POST', callback=reset_password,
+        self.app.route('/reset_password', 'GET', callback=get_reset_password)
+        self.app.route('/reset_password', 'POST', callback=post_reset_password,
                        apply=self.add_login_plugin)
-
         self.app.route('/', 'GET', callback=index, apply=self.check_login)
         self.app.route('/addresses', 'GET', callback=get_addresses,
                        apply=self.check_login)
@@ -201,7 +203,7 @@ def get_login():
 
     """
 
-    return template('login_form.html')
+    return template('login.html')
 
 
 def post_login(loginPlugin):
@@ -232,6 +234,19 @@ def logout(loginPlugin):
     """
 
     loginPlugin.logout(success_redirect=LOGIN_PATH)
+
+
+def get_register(loginPlugin):
+    """Register a new user based on post information.
+
+    :param loginPlugin: the login plugin to use to create a user
+    :type loginPlugin: object
+    :returns: the html after registering
+    :rtype: str
+
+    """
+
+    return template('registration.html')
 
 
 def post_register(loginPlugin):
@@ -268,7 +283,18 @@ def validate_registration(loginPlugin, registration_code):
     return 'Thanks. <a href="/login">Go to login</a>'
 
 
-def reset_password(loginPlugin):
+def get_reset_password():
+    """Get the user name and email address to reset the password.
+
+    :returns: the html form for resetting password
+    :rtype: str
+
+    """
+
+    return template('get_reset_code.html')
+
+
+def post_reset_password(loginPlugin):
     """Send out the password reset email.
 
     If the email fails, this page will display an error message.

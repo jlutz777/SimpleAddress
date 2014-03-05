@@ -11,6 +11,10 @@ app.filter('startFrom', function() {
 });
 
 function AddressListCtrl($scope, $timeout, $http, $modal) {
+    // Any alerts that have happened on the page
+    $scope.alerts = [];
+    
+    // Hold your addresses
     $scope.addresses = [];
     
     // Set up filtering and pagination vars
@@ -45,14 +49,17 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
             $scope.addresses = addresses;
             $scope.noOfPages = Math.ceil($scope.addresses.length/$scope.entryLimit);
             $scope.totalItems = $scope.addresses.length;
-        }).error(function(err)
+        }).error(function(data, status, headers, config)
         {
-            alert(err);
+            $scope.addAlert("Failure getting addresses", status);
         });
 
     $scope.change = function(address)
     {
-        $http.put('addresses', address);
+        $http.put('addresses', address).error(function(data, status, headers, config)
+            {
+                $scope.addAlert("Failure saving address", status);
+            });
     };
 
     $scope.create = function()
@@ -83,7 +90,7 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
                 $scope.addresses.push(newAddress);
             }).error(function(data, status, headers, config)
             {
-                alert("Failure creating with status " + status);
+                $scope.addAlert("Failure creating address", status);
             });
     };
 
@@ -124,10 +131,36 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
                         addresses.splice(index, 1);
                     }).error(function(data, status, headers, config)
                     {
-                        alert("Failure deleting with status " + status);
+                        $scope.addAlert("Failure deleting address", status);
                     });
                 });
     };
+
+    $scope.addAlert = function(message, status) {
+        // Put in custom messages for the alerts here if desired
+        if (status !== null)
+        {
+            message += ": ";
+            
+            switch (status)
+            {
+                case 500:
+                    message += "Internal Server Error";
+                    break;
+                case 400:
+                    message += "Bad Request";
+                    break;
+                default:
+                    message += status;
+                    break;
+            }
+        }
+        $scope.alerts.push({msg: message});
+    };
+
+  $scope.closeAlert = function(index) {
+        $scope.alerts.splice(index, 1);
+  };
 }
 
 var ModalEditCtrl = function ($scope, $modalInstance, address)
@@ -157,18 +190,3 @@ var ModalRemoveCtrl = function($scope, $modalInstance)
         $modalInstance.dismiss('cancel');
     };
 };
-
-function AlertDemoCtrl($scope) {
-  $scope.alerts = [
-    { type: 'error', msg: 'Oh snap! Change a few things up and try submitting again.' }, 
-    { type: 'success', msg: 'Well done! You successfully read this important alert message.' }
-  ];
-
-  $scope.addAlert = function() {
-    $scope.alerts.push({msg: "Another alert!"});
-  };
-
-  $scope.closeAlert = function(index) {
-    $scope.alerts.splice(index, 1);
-  };
-}
