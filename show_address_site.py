@@ -259,9 +259,21 @@ def post_register(loginPlugin):
 
     """
 
-    loginPlugin.register(post_get('username'), post_get('password'),
-                         post_get('email_address'))
-    return 'Please check your mailbox'
+    errMessage = ''
+    success = False
+    try:
+        loginPlugin.register(post_get('username'), post_get('password'),
+                             post_get('email_address'))
+        success = True
+    except AssertionError, ae:
+        errMessage = 'You must fill out user name, password,'
+        errMessage += ' and email address to register.'
+        log.error(ae)
+    except Exception, e:
+        errMessage = 'An unknown error occurred.'
+        log.error(e)
+    return template('registration.html', success=success,
+                    errMessage=errMessage)
 
 
 def validate_registration(loginPlugin, registration_code):
