@@ -38,6 +38,11 @@
     .form-signin button {
         display:block;
     }
+    .form-signin span {
+        float: left;
+        clear: left;
+        color: red;
+    }
 </style>
 </head>
 <body>
@@ -49,6 +54,9 @@
             <button class="btn btn-large btn-primary" type="submit">Sign in</button>
             <a class="btn btn-default" href="register" role="button">Register</a>
             <a class="btn btn-default" href="reset_password" role="button">Reset Password</a>
+            {% if errMessage is defined %}
+                <span>* {{ errMessage }}</span>
+            {% endif %}
         </form>
     </div>
 </body>

@@ -12,6 +12,7 @@ The rest is custom code to bring it all together.
 
 from bottle import Bottle, hook, HTTPResponse, request, TEMPLATE_PATH
 from bottle import jinja2_template as template, static_file, debug
+from bottle import HTTPError
 from beaker.middleware import SessionMiddleware
 from cork import Cork, AuthException
 from cork.backends import MongoDBBackend
@@ -218,10 +219,21 @@ def post_login(loginPlugin):
 
     """
 
-    username = post_get('username')
-    password = post_get('password')
-    loginPlugin.login(username, password, success_redirect='/',
-                      fail_redirect=LOGIN_PATH)
+    errMessage = ''
+    success = False
+    try:
+        username = post_get('username')
+        password = post_get('password')
+        success = loginPlugin.login(username, password, success_redirect='/')
+        if not success:
+            errMessage = 'User name and/or password were incorrect.'
+    # redirects throw an exception, so ignore
+    except HTTPResponse:
+        raise
+    except Exception, e:
+        errMessage = 'Login had an unknown error.'
+        log.error(errMessage + ".. " + e)
+    return template('login.html', errMessage=errMessage)
 
 
 def logout(loginPlugin):
@@ -268,10 +280,10 @@ def post_register(loginPlugin):
     except AssertionError, ae:
         errMessage = 'You must fill out user name, password,'
         errMessage += ' and email address to register.'
-        log.error(ae)
+        log.error(errMessage + ".. " + ae)
     except Exception, e:
         errMessage = 'An unknown error occurred.'
-        log.error(e)
+        log.error(errMessage + ".. " + e)
     return template('registration.html', success=success,
                     errMessage=errMessage)
 
