@@ -12,9 +12,8 @@ The rest is custom code to bring it all together.
 
 from bottle import Bottle, hook, HTTPResponse, request, TEMPLATE_PATH
 from bottle import jinja2_template as template, static_file, debug
-from bottle import HTTPError
 from beaker.middleware import SessionMiddleware
-from cork import Cork, AuthException
+from cork import Cork, AuthException, AAAException
 from cork.backends import MongoDBBackend
 from gunicorn.app.base import Application
 from libraries.utils import JSONHelper, strToId, CSVHelper
@@ -230,9 +229,9 @@ def post_login(loginPlugin):
     # redirects throw an exception, so ignore
     except HTTPResponse:
         raise
-    except Exception, e:
+    except Exception:
         errMessage = 'Login had an unknown error.'
-        log.error(errMessage + ".. " + e)
+        log.exception(errMessage)
     return template('login.html', errMessage=errMessage)
 
 
@@ -277,13 +276,13 @@ def post_register(loginPlugin):
         loginPlugin.register(post_get('username'), post_get('password'),
                              post_get('email_address'))
         success = True
-    except AssertionError, ae:
+    except AssertionError:
         errMessage = 'You must fill out user name, password,'
         errMessage += ' and email address to register.'
-        log.error(errMessage + ".. " + ae)
-    except Exception, e:
+        log.exception(errMessage)
+    except Exception:
         errMessage = 'An unknown error occurred.'
-        log.error(errMessage + ".. " + e)
+        log.exception(errMessage)
     return template('registration.html', success=success,
                     errMessage=errMessage)
 
@@ -330,14 +329,24 @@ def post_reset_password(loginPlugin):
 
     """
 
+    errMessage = ''
+    success = False
     try:
         userName = post_get('username')
         emailAddress = post_get('email_address')
         loginPlugin.send_password_reset_email(username=userName,
                                               email_addr=emailAddress)
     except AuthException:
-        return 'Invalid username or email address.'
-    return 'Please check your mailbox.'
+        errMessage = 'Your username or email address is invalid.'
+        log.exception(errMessage)
+    except AAAException:
+        errMessage = 'Your username is invalid.'
+        log.exception(errMessage)
+    except Exception:
+        errMessage = 'An unknown error occurred.'
+        log.exception(errMessage)
+    return template('get_reset_code.html', success=success,
+                    errMessage=errMessage)
 
 
 def get_change_password(reset_code):

@@ -38,10 +38,16 @@
     .form-signin button {
         display:block;
     }
+    .form-signin span {
+        float: left;
+        clear: left;
+        color: red;
+    }
 </style>
 </head>
 <body>
     <div class="container">
+    {% if success is not defined or not success %}
         <form action="reset_password" method="post" name="password_reset" class="form-signin">
             <h2 class="form-signin-heading">Reset Password</h2>
             <input name="username" type="text" class="input-block-level" placeholder="User name">
@@ -49,7 +55,13 @@
             <button class="btn btn-large btn-primary" type="submit">Reset Password</button>
             <a class="btn btn-default" href="login" role="button">Login</a>
             <a class="btn btn-default" href="register" role="button">Register</a>
+            {% if success is defined %}
+                <span>* {{ errMessage }}</span>
+            {% endif %}
         </form>
+    {% else %}
+        Please check your email.
+    {% endif %}
     </div>
 </body>
 </html>
