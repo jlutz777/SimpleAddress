@@ -302,8 +302,19 @@ def validate_registration(loginPlugin, registration_code):
 
     """
 
-    loginPlugin.validate_registration(registration_code)
-    return 'Thanks. <a href="/login">Go to login</a>'
+    errMessage = ''
+    success = False
+    try:
+        loginPlugin.validate_registration(registration_code)
+        success = True
+    except AuthException:
+        errMessage = 'This is not a proper registration code.'
+        log.exception(errMessage)
+    except Exception:
+        errMessage = 'An unknown error occurred.'
+        log.exception(errMessage)
+    return template('validate_registration.html', success=success,
+                    errMessage=errMessage)
 
 
 def get_reset_password():
@@ -336,6 +347,7 @@ def post_reset_password(loginPlugin):
         emailAddress = post_get('email_address')
         loginPlugin.send_password_reset_email(username=userName,
                                               email_addr=emailAddress)
+        success = True
     except AuthException:
         errMessage = 'Your username or email address is invalid.'
         log.exception(errMessage)
@@ -372,8 +384,24 @@ def post_change_password(loginPlugin):
 
     """
 
-    loginPlugin.reset_password(post_get('reset_code'), post_get('password'))
-    return 'Thanks. <a href="/login">Go to login</a>'
+    errMessage = ''
+    success = False
+    try:
+        reset_code = post_get('reset_code')
+        password = post_get('password')
+        loginPlugin.reset_password(reset_code, password)
+        success = True
+    except AuthException, aue:
+        errMessage = str(aue)
+        log.exception(errMessage)
+    except AAAException, aae:
+        errMessage = str(aae)
+        log.exception(errMessage)
+    except Exception:
+        errMessage = 'An unknown error occurred.'
+        log.exception(errMessage)
+    return template('reset_password.html', success=success,
+                    errMessage=errMessage)
 
 
 def index(helper, userName):
