@@ -1,0 +1,7 @@
+@import url("bootstrap.min.css");
+
+.btn {
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+}
