@@ -16,6 +16,7 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
     
     // Hold your addresses
     $scope.addresses = [];
+    $scope.newaddress = {};
     
     // Set up filtering and pagination vars
     $scope.totalItems = 0;
