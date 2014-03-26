@@ -13,6 +13,7 @@ The rest is custom code to bring it all together.
 from bottle import Bottle, hook, HTTPResponse, request, TEMPLATE_PATH
 from bottle import jinja2_template as template, static_file, debug
 from beaker.middleware import SessionMiddleware
+from configobj import ConfigObj
 from cork import Cork, AuthException, AAAException
 from cork.backends import MongoDBBackend
 from gunicorn.app.base import Application
@@ -598,8 +599,5 @@ def return_error(status, msg=''):
                         header={'Content-Type': 'application/json'})
 
 if __name__ == '__main__':
-    ipaddress = "0.0.0.0"
-    port = os.environ.get("PORT", 5000)
-    AddressServer({"bind": ipaddress + ":" + port, "workers": 3,
-                   "proc_name": "simpleaddress", "max_requests": 100,
-                   "timeout": 300}).run()
+    options = ConfigObj(os.environ["CONFIGFILE"])["web server"]
+    AddressServer(options).run()
