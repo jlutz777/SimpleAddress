@@ -600,4 +600,6 @@ def return_error(status, msg=''):
 
 if __name__ == '__main__':
     options = ConfigObj(os.environ["CONFIGFILE"])["web server"]
+    port = os.environ.get("PORT", 5000)
+    options["bind"] = options["bind"] + ":" + port
     AddressServer(options).run()
