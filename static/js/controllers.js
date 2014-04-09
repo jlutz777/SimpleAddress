@@ -136,6 +136,19 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
                     });
                 });
     };
+    
+    $scope.showMap = function(address)
+    {
+        var mapUrl = "http://maps.google.com/maps?saddr=Current%20Location&daddr=";
+        mapUrl += address.street_1;
+        
+        if (address.street_2)
+        {
+            mapUrl += " " + address.street_2;
+        }
+        mapUrl += "," + address.city + "," + address.state + "," + address.zip;
+        window.open(mapUrl);
+    };
 
     $scope.addAlert = function(message, status) {
         // Put in custom messages for the alerts here if desired
