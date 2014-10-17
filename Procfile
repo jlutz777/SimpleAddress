@@ -1,1 +1,1 @@
-web: python show_address_site.py
+web: python show_address_site.py $PORT
