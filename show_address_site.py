@@ -601,4 +601,5 @@ def return_error(status, msg=''):
 
 if __name__ == '__main__':
     options = ConfigObj(os.environ["CONFIGFILE"])["web server"]
+    options['bind'] = options['bind'] + ':80'
     AddressServer(options).run()
