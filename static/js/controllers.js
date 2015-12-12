@@ -82,7 +82,8 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
             "relationship": $scope.newaddress.relationship,
             "title": $scope.newaddress.title,
             "children": $scope.newaddress.children,
-            "label_name": $scope.newaddress.label_name
+            "label_name": $scope.newaddress.label_name,
+            "send_christmas_card": $scope.newaddress.send_christmas_card
         };
 
         $http.post('addresses', newAddress).success(function(data, status, headers, config)
