@@ -55,9 +55,12 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
             $scope.addAlert("Failure getting addresses", status);
         });
 
-    $scope.change = function(address)
+    $scope.change = function(address, origAddress)
     {
-        $http.put('addresses', address).error(function(data, status, headers, config)
+        $http.put('addresses', address).success(function()
+        {
+            $scope.addresses[$scope.addresses.indexOf(origAddress)] = address;
+        }).error(function(data, status, headers, config)
             {
                 $scope.addAlert("Failure saving address", status);
             });
@@ -90,6 +93,14 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
             {
                 newAddress._id = data._id;
                 $scope.addresses.push(newAddress);
+                
+                for (var prop in $scope.newaddress)
+                {
+                   if ($scope.newaddress.hasOwnProperty(prop))
+                   {
+                        $scope.newaddress[prop] = '';
+                   }
+                }
             }).error(function(data, status, headers, config)
             {
                 $scope.addAlert("Failure creating address", status);
@@ -98,21 +109,22 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
 
     $scope.open = function(editAddress)
     {
+        var copyAddress = angular.copy(editAddress);
         var modalData =
             {
                 templateUrl: 'editContent.html',
                 controller: ModalEditCtrl,
                 resolve: {
                     address: function()
-                        {
-                            return editAddress;
-                        }
+                    {
+                        return copyAddress;
+                    }
                 }
             };
         var modalInstance = $modal.open(modalData);
         modalInstance.result.then(function (savedAddress)
             {
-                $scope.change(savedAddress);
+                $scope.change(savedAddress, editAddress);
             });
     };
 
@@ -181,7 +193,7 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
 var ModalEditCtrl = function ($scope, $modalInstance, address)
 {
     $scope.address = address;
-
+    
     $scope.ok = function ()
     {
         $modalInstance.close($scope.address);
