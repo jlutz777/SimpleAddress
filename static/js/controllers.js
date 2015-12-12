@@ -88,24 +88,47 @@ function AddressListCtrl($scope, $timeout, $http, $modal) {
             "label_name": $scope.newaddress.label_name,
             "send_christmas_card": $scope.newaddress.send_christmas_card
         };
+        
+        var proceed = true;
+        for (var i=0; i<$scope.addresses.length; i++)
+        {
+            var addr = $scope.addresses[i];
+            if (addr.first_name == newAddress.first_name && addr.last_name == newAddress.last_name)
+            {
+                proceed = confirm("Do you want to create another \"" + addr.first_name + " " + addr.last_name + "\"");
+                break;
+            }
+        }
 
-        $http.post('addresses', newAddress).success(function(data, status, headers, config)
+        if (proceed)
+        {
+            $http.post('addresses', newAddress).success(function(data, status, headers, config)
             {
                 newAddress._id = data._id;
                 $scope.addresses.push(newAddress);
                 
-                for (var prop in $scope.newaddress)
-                {
-                   if ($scope.newaddress.hasOwnProperty(prop))
-                   {
-                        $scope.newaddress[prop] = '';
-                   }
-                }
+                clearProps($scope.newaddress);
             }).error(function(data, status, headers, config)
             {
                 $scope.addAlert("Failure creating address", status);
             });
+        }
+        else
+        {
+            clearProps($scope.newaddress);
+        }
     };
+    
+    function clearProps(obj)
+    {
+        for (var prop in obj)
+        {
+           if (obj.hasOwnProperty(prop))
+           {
+                obj[prop] = '';
+           }
+        }
+    }
 
     $scope.open = function(editAddress)
     {
