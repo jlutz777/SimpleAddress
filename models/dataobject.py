@@ -147,7 +147,7 @@ class DataModel(object):
 
         res = self.table.remove({'_id': thisId, 'userName': userName})
         print str(res)
-        if res[u'nRemoved'] == 1:
+        if res[u'ok'] == 1:
             return True
         else:
             return False
