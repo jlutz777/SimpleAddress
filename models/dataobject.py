@@ -128,7 +128,7 @@ class DataModel(object):
         item['userName'] = userName
         res = self.table.update({'_id': thisId, 'userName': userName},
                                 {'$set': item})
-        if res[u'nMatched'] == 1:
+        if res['nMatched'] == 1:
             return True
         else:
             return False
