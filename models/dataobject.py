@@ -128,7 +128,7 @@ class DataModel(object):
         item['userName'] = userName
         res = self.table.update({'_id': thisId, 'userName': userName},
                                 {'$set': item})
-        if res[u'updatedExisting'] and res[u'err'] is None:
+        if res[u'nMatched'] == 1:
             return True
         else:
             return False
@@ -147,7 +147,7 @@ class DataModel(object):
 
         res = self.table.remove({'_id': thisId, 'userName': userName})
         print str(res)
-        if res[u'err'] is None and res[u'n'] != 0:
+        if res[u'nRemoved'] == 1:
             return True
         else:
             return False
