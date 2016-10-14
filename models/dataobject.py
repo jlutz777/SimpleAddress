@@ -128,8 +128,7 @@ class DataModel(object):
         item['userName'] = userName
         res = self.table.update({'_id': thisId, 'userName': userName},
                                 {'$set': item})
-        print res
-        if res.matched_count == 1:
+        if res['updatedExisting']:
             return True
         else:
             return False
