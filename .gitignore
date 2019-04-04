@@ -3,3 +3,5 @@ venv
 random/*
 code_checker.sh
 starter.sh
+backups_from_koding/*
+heroku_backup.sh
