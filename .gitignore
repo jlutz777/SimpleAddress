@@ -1,6 +1,6 @@
 *.pyc
 venv
-random/*
+trash/*
 code_checker.sh
 starter.sh
 backups_from_koding/*
