@@ -393,10 +393,10 @@ def post_change_password(loginPlugin):
         password = post_get('password')
         loginPlugin.reset_password(reset_code, password)
         success = True
-    except AuthException, aue:
+    except AuthException as aue:
         errMessage = str(aue)
         log.exception(errMessage)
-    except AAAException, aae:
+    except AAAException as aae:
         errMessage = str(aae)
         log.exception(errMessage)
     except Exception:
@@ -518,8 +518,8 @@ def csv_export(helper, userName):
     csvAddresses = CSVHelper().convertToCSV(addresses,
                                             helper.getCreationFields())
     disposition = "attachment;filename=addresses.csv"
-    return HTTPResponse(csvAddresses, status=200,
-                        header={'Content-Type': 'text/csv',
+    return HTTPResponse(body=csvAddresses, status=200,
+                        headers={'Content-Type': 'text/csv',
                                 'Content-disposition': disposition})
 
 
@@ -540,7 +540,7 @@ def christmas_card_csv_export(helper, userName):
                                             helper.getChristmasFields())
     disposition = "attachment;filename=christmas_card.csv"
     return HTTPResponse(csvAddresses, status=200,
-                        header={'Content-Type': 'text/csv',
+                        headers={'Content-Type': 'text/csv',
                                 'Content-disposition': disposition})
 
 

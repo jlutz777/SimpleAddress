@@ -105,7 +105,7 @@ class CSVHelper:
 
         """
 
-        output = io.BytesIO()
+        output = io.StringIO()
         writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerow(orderedFields)
         for item in o:
@@ -114,7 +114,7 @@ class CSVHelper:
             for field in orderedFields:
                 orderedValues.append(item.get(field.name, ''))
             writer.writerow(orderedValues)
-        return output.getvalue()
+        return str.encode(output.getvalue())
 
     def convertFromCSV(self, fileName):
         """Return a list of dictionaries from a csv file.

@@ -7,7 +7,7 @@ with anything.
 
 """
 
-from dataobject import DataModel
+from .dataobject import DataModel
 from libraries.utils import fieldsFromFieldNameArray
 
 
